@@ -16,9 +16,59 @@ datasource db {
 model Auth {
   id            Int      @id @default(autoincrement())
   employeeId    String   @unique
-  passwordHash  String
+  password      String   
   isActive      Boolean  @default(true)
+  userId        Int      @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   lastLoginAt   DateTime?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  @@map("auth")
+}
+
+model User {
+  id            Int      @id @default(autoincrement())
+  employeeId    String   @unique
+  fullName      String
+  email         String?  @unique
+  phoneNumber   String?  @unique
+  roles         UserRole[]
+  dateOfBirth   DateTime?
+  address       String?
+  onBoardAt     DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  isActive      Boolean  @default(true)
+  avatarUrl     String?
+  gender        String?
+  auth          Auth?
+  @@map("users")
+}
+
+model Role {
+  id          Int        @id @default(autoincrement())
+  code        String     @unique
+  name        String
+  description String?
+
+  users       UserRole[]
+
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  isActive    Boolean    @default(true)
+
+  @@map("roles")
+}
+
+model UserRole {
+  userId Int
+  roleId Int
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  assignedAt DateTime @default(now())
+
+  @@id([userId, roleId])
+  @@map("user_roles")
 }
