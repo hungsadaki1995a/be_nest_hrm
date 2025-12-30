@@ -1,9 +1,11 @@
 import { JwtAuthGuard } from '@guards/jwt-auth.guard';
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
   Get,
+  NotFoundException,
   Param,
   ParseIntPipe,
   Post,
@@ -28,8 +30,23 @@ export class RoleController {
 
   @Get()
   @ApiOkResponse({ type: [RoleResponseDto] })
-  get() {
+  getAll() {
     return this.service.findAll();
+  }
+
+  @Get(':id')
+  async getByEmployeeId(@Param('id', ParseIntPipe) id: number) {
+    if (!id) {
+      throw new BadRequestException('Role Id is required');
+    }
+
+    const role = await this.service.findById(id);
+
+    if (!role) {
+      throw new NotFoundException('Role not found');
+    }
+
+    return role;
   }
 
   @Delete(':id')

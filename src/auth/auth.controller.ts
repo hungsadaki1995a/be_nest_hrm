@@ -1,15 +1,5 @@
-import {
-  BadRequestException,
-  Body,
-  Controller,
-  Get,
-  NotFoundException,
-  Param,
-  Post,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiExcludeEndpoint, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -25,6 +15,7 @@ export class AuthController {
   }
 
   @Post()
+  @ApiExcludeEndpoint()
   create() {
     return this.service.create();
   }
@@ -35,20 +26,5 @@ export class AuthController {
   getProfile(@Req() req: { user: { employeeId: string } }) {
     console.log('Get Profile request data', req);
     return this.service.getProfile(req.user.employeeId);
-  }
-
-  @Get(':employeeId')
-  async getByEmployeeId(@Param('employeeId') employeeId: string) {
-    if (!employeeId) {
-      throw new BadRequestException('Employee Id is required');
-    }
-
-    const auth = await this.service.findByEmployeeId(employeeId);
-
-    if (!auth) {
-      throw new NotFoundException('Employee not found');
-    }
-
-    return auth;
   }
 }

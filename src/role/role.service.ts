@@ -27,6 +27,18 @@ export class RoleService {
     });
   }
 
+  async findById(id: number) {
+    return this.prisma.role.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        code: true,
+        name: true,
+        description: true,
+      },
+    });
+  }
+
   async delete(id: number) {
     const role = await this.prisma.role.findUnique({
       where: { id },
