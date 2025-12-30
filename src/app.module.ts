@@ -7,10 +7,12 @@ import { PermissionService } from './permission/permission.service';
 import { PermissionController } from './permission/permission.controller';
 import { GroupController } from './group/group.controller';
 import { GroupService } from './group/group.service';
+import { RoleService } from './role/role.service';
+import { RoleController } from './role/role.controller';
 
 @Module({
   imports: [PrismaModule, AuthModule],
-  controllers: [AppController, PermissionController, GroupController],
-  providers: [AppService, PermissionService, GroupService],
+  controllers: [AppController, PermissionController, GroupController, RoleController],
+  providers: [AppService, PermissionService, GroupService, RoleService],
 })
 export class AppModule {}
