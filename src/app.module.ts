@@ -13,6 +13,8 @@ import { UsersController } from './users/users.controller';
 import { UsersService } from './users/users.service';
 import { DepartmentController } from './department/department.controller';
 import { DepartmentService } from './department/department.service';
+import { TeamController } from './team/team.controller';
+import { TeamService } from './team/team.service';
 
 @Module({
   imports: [PrismaModule, AuthModule],
@@ -23,6 +25,7 @@ import { DepartmentService } from './department/department.service';
     RoleController,
     UsersController,
     DepartmentController,
+    TeamController,
   ],
   providers: [
     AppService,
@@ -31,6 +34,7 @@ import { DepartmentService } from './department/department.service';
     RoleService,
     UsersService,
     DepartmentService,
+    TeamService,
   ],
 })
 export class AppModule {}

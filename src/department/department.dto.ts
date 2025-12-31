@@ -1,3 +1,4 @@
+import { TeamShortResponseDto } from '@/team/team.dto';
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsInt,
@@ -7,8 +8,19 @@ import {
   Length,
 } from 'class-validator';
 
+export class TemporaryUserResponseDto {
+  @ApiProperty()
+  id: number;
+
+  @ApiProperty()
+  name: string;
+}
+
 export class DepartmentDto {
-  @ApiProperty({ example: 'GDC' })
+  @ApiProperty({
+    example: 'GDC',
+    description: 'Unique department code (3–5 chars)',
+  })
   @IsString()
   @IsNotEmpty()
   @Length(3, 5)
@@ -19,7 +31,10 @@ export class DepartmentDto {
   @IsNotEmpty()
   name: string;
 
-  @ApiProperty({ example: 'Global Development Center department' })
+  @ApiProperty({
+    example: 'Global Development Center department',
+    required: false,
+  })
   @IsString()
   @IsOptional()
   description?: string;
@@ -55,22 +70,6 @@ export class DepartmentUpdateDto {
   headId?: number;
 }
 
-class UserResponseDto {
-  @ApiProperty()
-  id: number;
-
-  @ApiProperty()
-  name: string;
-}
-
-class TeamResponseDto {
-  @ApiProperty()
-  id: number;
-
-  @ApiProperty()
-  name: string;
-}
-
 export class DepartmentResponseDto {
   @ApiProperty({ example: '1' })
   id: number;
@@ -84,11 +83,42 @@ export class DepartmentResponseDto {
   @ApiProperty({ example: 'Global Development Center department' })
   description?: string;
 
-  @ApiProperty({ type: UserResponseDto, nullable: true })
-  head?: UserResponseDto | null;
+  @ApiProperty({ type: TemporaryUserResponseDto, nullable: true })
+  head?: TemporaryUserResponseDto | null;
 
-  @ApiProperty({ type: [TeamResponseDto] })
-  teams: TeamResponseDto[];
+  @ApiProperty({ type: () => [TeamShortResponseDto] })
+  teams: TeamShortResponseDto[];
+
+  @ApiProperty({
+    example: '2025-01-01T10:00:00.000Z',
+    type: String,
+    format: 'date-time',
+  })
+  createdAt: Date;
+
+  @ApiProperty({
+    example: '2025-01-02T15:30:00.000Z',
+    type: String,
+    format: 'date-time',
+  })
+  updatedAt: Date;
+}
+
+export class DepartmentShortResponseDto {
+  @ApiProperty({ example: '1' })
+  id: number;
+
+  @ApiProperty({ example: 'GDC' })
+  code: string;
+
+  @ApiProperty({ example: 'Global Development Center' })
+  name: string;
+
+  @ApiProperty({ example: 'Global Development Center department' })
+  description?: string;
+
+  @ApiProperty({ type: TemporaryUserResponseDto, nullable: true })
+  head?: TemporaryUserResponseDto | null;
 
   @ApiProperty({
     example: '2025-01-01T10:00:00.000Z',
