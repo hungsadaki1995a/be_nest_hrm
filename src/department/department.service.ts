@@ -1,12 +1,9 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { DepartmentDto, DepartmentUpdateDto } from './department.dto';
 import { departmentError, departmentSelect } from './department.constant';
+import { AppException } from '@/app.exception';
 
 @Injectable()
 export class DepartmentService {
@@ -17,7 +14,7 @@ export class DepartmentService {
   private handlePrismaUniqueError(e: unknown): never {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
       if (e.code === 'P2002') {
-        throw new BadRequestException(departmentError.codeExisted);
+        throw new AppException(departmentError.codeExisted);
       }
     }
     throw e;
@@ -34,7 +31,7 @@ export class DepartmentService {
     });
 
     if (!user) {
-      throw new BadRequestException(departmentError.headNotFound);
+      throw new AppException(departmentError.headNotFound);
     }
 
     // this.userCache.set(headId, user);
@@ -47,7 +44,7 @@ export class DepartmentService {
     });
 
     if (!exists) {
-      throw new NotFoundException(departmentError.notFound);
+      throw new AppException(departmentError.notFound);
     }
   }
 
@@ -81,7 +78,7 @@ export class DepartmentService {
     });
 
     if (!department) {
-      throw new NotFoundException(departmentError.notFound);
+      throw new AppException(departmentError.notFound);
     }
 
     return department;
@@ -112,7 +109,7 @@ export class DepartmentService {
     });
 
     if (usedCount > 0) {
-      throw new BadRequestException(departmentError.teamAssigned);
+      throw new AppException(departmentError.teamAssigned);
     }
 
     await this.prisma.department.delete({ where: { id } });

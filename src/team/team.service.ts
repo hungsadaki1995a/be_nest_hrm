@@ -1,12 +1,9 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { TeamDto, TeamUpdateDto } from './team.dto';
 import { teamError, teamSelect } from './team.constant';
+import { AppException } from '@/app.exception';
 
 @Injectable()
 export class TeamService {
@@ -15,7 +12,7 @@ export class TeamService {
   private handlePrismaUniqueError(e: unknown): never {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
       if (e.code === 'P2002') {
-        throw new BadRequestException(teamError.codeExisted);
+        throw new AppException(teamError.codeExisted);
       }
     }
     throw e;
@@ -30,7 +27,7 @@ export class TeamService {
     });
 
     if (!department) {
-      throw new BadRequestException(teamError.departmentNotFound);
+      throw new AppException(teamError.departmentNotFound);
     }
   }
 
@@ -43,7 +40,7 @@ export class TeamService {
     });
 
     if (!user) {
-      throw new BadRequestException(teamError.leaderNotFound);
+      throw new AppException(teamError.leaderNotFound);
     }
   }
 
@@ -59,9 +56,7 @@ export class TeamService {
     const missing = memberIds.filter((id) => !foundIds.includes(id));
 
     if (missing.length > 0) {
-      throw new BadRequestException(
-        `${teamError.userNotFound} ${missing.join(', ')}`,
-      );
+      throw new AppException(`${teamError.userNotFound} ${missing.join(', ')}`);
     }
   }
 
@@ -72,7 +67,7 @@ export class TeamService {
     });
 
     if (!exists) {
-      throw new NotFoundException(teamError.notFound);
+      throw new AppException(teamError.notFound);
     }
   }
 
@@ -117,7 +112,7 @@ export class TeamService {
     });
 
     if (!team) {
-      throw new NotFoundException(teamError.notFound);
+      throw new AppException(teamError.notFound);
     }
 
     return team;
@@ -151,7 +146,7 @@ export class TeamService {
     });
 
     if (usedCount > 0) {
-      throw new BadRequestException(teamError.cannotDelete);
+      throw new AppException(teamError.cannotDelete);
     }
 
     await this.prisma.team.delete({ where: { id } });
