@@ -11,10 +11,26 @@ import { RoleService } from './role/role.service';
 import { RoleController } from './role/role.controller';
 import { UsersController } from './users/users.controller';
 import { UsersService } from './users/users.service';
+import { DepartmentController } from './department/department.controller';
+import { DepartmentService } from './department/department.service';
 
 @Module({
   imports: [PrismaModule, AuthModule],
-  controllers: [AppController, PermissionController, GroupController, RoleController, UsersController],
-  providers: [AppService, PermissionService, GroupService, RoleService, UsersService],
+  controllers: [
+    AppController,
+    PermissionController,
+    GroupController,
+    RoleController,
+    UsersController,
+    DepartmentController,
+  ],
+  providers: [
+    AppService,
+    PermissionService,
+    GroupService,
+    RoleService,
+    UsersService,
+    DepartmentService,
+  ],
 })
 export class AppModule {}
