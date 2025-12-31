@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 async function main() {
   const passwordHash = await bcrypt.hash('shinhan@1', 10);
 
-  const employee = await prisma.user.create({
+  await prisma.user.create({
     data: {
       employeeId: '23053239',
       fullName: 'Pham Van Hao',
