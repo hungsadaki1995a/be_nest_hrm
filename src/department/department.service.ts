@@ -1,9 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { DepartmentDto, DepartmentUpdateDto } from './department.dto';
-import { departmentError, departmentSelect } from './department.constant';
 import { AppException } from '@/app.exception';
+import { DepartmentSearchDto } from './dto/department.search.dto';
+import { buildDepartmentWhere } from './queries/department.search';
+import { buildPagination } from '@/common/prisma';
+import { SortField } from '@/common/constants';
+import { normalizePaginationAndSort } from '@/common/helpers';
+import {
+  DepartmentCreateDto,
+  DepartmentUpdateDto,
+} from './dto/department.input.dto';
+import { departmentError } from './constants/department.error';
+import { departmentSelect } from './constants/department.select';
 
 @Injectable()
 export class DepartmentService {
@@ -48,7 +57,7 @@ export class DepartmentService {
     }
   }
 
-  async create(payload: DepartmentDto) {
+  async create(payload: DepartmentCreateDto) {
     // this.userCache.clear();
 
     await this.validateHeadUser(payload.headId);
@@ -63,12 +72,42 @@ export class DepartmentService {
     }
   }
 
-  async findAll() {
-    return await this.prisma.department.findMany({
-      // where: { isActive: true },
-      orderBy: { createdAt: 'desc' },
-      select: departmentSelect,
+  async findAll(query: DepartmentSearchDto) {
+    const {
+      page,
+      limit,
+      sortBy,
+      orderBy: sortOrder,
+    } = normalizePaginationAndSort(query, {
+      sortBy: SortField.CREATED_AT,
     });
+
+    const where = buildDepartmentWhere(query);
+    const { skip, take } = buildPagination(page, limit);
+    const orderBy: Prisma.DepartmentOrderByWithRelationInput = {
+      [sortBy]: sortOrder,
+    };
+
+    const [items, total] = await Promise.all([
+      this.prisma.department.findMany({
+        where,
+        skip,
+        take,
+        orderBy,
+        select: departmentSelect,
+      }),
+      this.prisma.department.count({ where }),
+    ]);
+
+    return {
+      data: items,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   async findById(id: number) {

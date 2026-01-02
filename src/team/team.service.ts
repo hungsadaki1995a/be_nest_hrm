@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { TeamDto, TeamUpdateDto } from './team.dto';
-import { teamError, teamSelect } from './team.constant';
+import { teamError } from './constants/team.error';
 import { AppException } from '@/app.exception';
+import { teamSelect } from './constants/team.select';
+import { TeamCreateDto, TeamUpdateDto } from './dto/team.input.dto';
 
 @Injectable()
 export class TeamService {
@@ -79,7 +80,7 @@ export class TeamService {
     };
   }
 
-  async create(payload: TeamDto) {
+  async create(payload: TeamCreateDto) {
     await this.validateDepartment(payload.departmentId);
     await this.validateLeader(payload.leaderId);
     await this.validateMembers(payload.memberIds);
