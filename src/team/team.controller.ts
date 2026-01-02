@@ -17,8 +17,9 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
-import { TeamDto, TeamResponseDto, TeamUpdateDto } from './team.dto';
 import { TeamService } from './team.service';
+import { TeamCreateDto, TeamUpdateDto } from './dto/team.input.dto';
+import { TeamResponseDto } from './dto/team.response.dto';
 
 @ApiTags('Teams')
 @UseGuards(JwtAuthGuard)
@@ -28,7 +29,7 @@ export class TeamController {
   constructor(private readonly service: TeamService) {}
 
   @Post()
-  create(@Body() payload: TeamDto) {
+  create(@Body() payload: TeamCreateDto) {
     return this.service.create(payload);
   }
 
