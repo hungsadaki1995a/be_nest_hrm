@@ -5,7 +5,6 @@ import { AppException } from '@/app.exception';
 import { DepartmentSearchDto } from './dto/department.search.dto';
 import { buildDepartmentWhere } from './queries/department.search';
 import { buildPagination } from '@/common/prisma';
-import { SortField } from '@/common/constants';
 import { normalizePaginationAndSort } from '@/common/helpers';
 import {
   DepartmentCreateDto,
@@ -78,9 +77,7 @@ export class DepartmentService {
       limit,
       sortBy,
       orderBy: sortOrder,
-    } = normalizePaginationAndSort(query, {
-      sortBy: SortField.CREATED_AT,
-    });
+    } = normalizePaginationAndSort(query);
 
     const where = buildDepartmentWhere(query);
     const { skip, take } = buildPagination(page, limit);
