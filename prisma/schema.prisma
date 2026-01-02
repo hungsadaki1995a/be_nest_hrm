@@ -32,7 +32,9 @@ model User {
   fullName      String
   email         String?  @unique
   phoneNumber   String?  @unique
+
   roles         UserRole[]
+
   dateOfBirth   DateTime?
   address       String?
   onBoardAt     DateTime?
