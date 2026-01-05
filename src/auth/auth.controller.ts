@@ -3,6 +3,7 @@ import { PermissionService } from '@/permission/permission.service';
 import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiCreatedResponse,
   ApiExcludeEndpoint,
   ApiOkResponse,
   ApiTags,
@@ -10,6 +11,7 @@ import {
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import type { Request } from 'express';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -36,11 +38,25 @@ export class AuthController {
   getProfile(@Req() req: { user: { employeeId: string } }) {
     return this.service.getProfile(req.user.employeeId);
   }
+
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('access-token')
   @Get('permissions')
   @ApiOkResponse({ type: PermissionResponseDto })
   getPermissions(@Req() req: { user: { employeeId: string } }) {
     return this.permissionService.getPermissions(req.user.employeeId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('logout')
+  @ApiCreatedResponse({ description: 'Logout successful' })
+  logout(@Req() req: Request) {
+    return this.service.logout(req);
+  }
+
+  @Post('refresh-token')
+  @ApiCreatedResponse({ description: 'Token refreshed successfully' })
+  async refreshToken(@Req() req: Request) {
+    return await this.service.refreshToken(req);
   }
 }
