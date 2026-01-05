@@ -1,3 +1,3 @@
 export const ErrorMessage = {
-  duplicate: 'Duplicate value for field: {1}',
+  duplicate: 'Duplicate value for field: {0}',
 };

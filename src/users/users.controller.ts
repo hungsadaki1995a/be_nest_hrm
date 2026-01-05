@@ -1,16 +1,24 @@
+import { AppException } from '@/app.exception';
 import { JwtAuthGuard } from '@guards/jwt-auth.guard';
 import {
-  BadRequestException,
   Body,
   Controller,
   Get,
-  NotFoundException,
   Param,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { UserCreateDto } from './user.dto';
+import {
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
+import { UserCreateDto } from './dto/create-user.dto';
+import { UserDetailDto } from './dto/user-detail.dto';
+import { UserListResponseDto } from './dto/user-list-response.dto';
+import { UserSearchDto } from './dto/user-search.dto';
 import { UsersService } from './users.service';
 
 @ApiTags('User')
@@ -20,17 +28,25 @@ import { UsersService } from './users.service';
 export class UsersController {
   constructor(private service: UsersService) {}
 
+  @Get()
+  @ApiOkResponse({ type: [UserListResponseDto] })
+  @ApiQuery({ name: 'query', required: false })
+  @ApiQuery({ name: 'page', required: false })
+  @ApiQuery({ name: 'limit', required: false })
+  @ApiQuery({ name: 'sortBy', required: false })
+  @ApiQuery({ name: 'orderBy', required: false })
+  findAll(@Query() query: UserSearchDto) {
+    return this.service.findAll(query);
+  }
+
   @Get(':employeeId')
+  @ApiOkResponse({ type: UserDetailDto })
   async getByEmployeeId(@Param('employeeId') employeeId: string) {
     if (!employeeId) {
-      throw new BadRequestException('Employee Id is required');
+      throw new AppException('Employee Id is required');
     }
 
     const employee = await this.service.findByEmployeeId(employeeId);
-
-    if (!employee) {
-      throw new NotFoundException('Employee not found');
-    }
 
     return employee;
   }
