@@ -1,36 +1,45 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { UserShortDto } from './user-short.dto';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import {
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Length,
+  ValidateIf,
+} from 'class-validator';
 
-export class TeamShortDto {
-  @ApiProperty({ example: '1' })
-  id: number;
-
-  @ApiProperty({ example: 'FE' })
+export class TeamBaseDto {
+  @ApiProperty({
+    example: 'FE',
+    description: 'Unique Team code (3–5 chars)',
+  })
+  @IsString()
+  @IsNotEmpty()
+  @Length(2, 5)
   code: string;
 
-  @ApiProperty({ example: 'Frontend' })
+  @ApiProperty({
+    example: 'Frontend',
+    description: "Team's name",
+  })
+  @IsString()
+  @IsNotEmpty()
   name: string;
 
-  @ApiProperty({ example: 'GDC Frontend Team', nullable: true })
+  @ApiPropertyOptional({
+    nullable: true,
+    example: 'GDC Frontend Team',
+    description: 'Describe about team',
+  })
+  @ValidateIf((o: TeamBaseDto) => o.description !== null)
+  @IsString()
+  @IsOptional()
   description?: string | null;
+}
 
-  @ApiProperty({ type: UserShortDto, nullable: true })
-  leader?: UserShortDto | null;
-
-  @ApiProperty({ type: [UserShortDto] })
-  members: UserShortDto[];
-
+export class TeamShortDto extends TeamBaseDto {
   @ApiProperty({
-    example: '2025-01-01T10:00:00.000Z',
-    type: String,
-    format: 'date-time',
+    example: 1,
+    description: 'Unique Team ID',
   })
-  createdAt: Date;
-
-  @ApiProperty({
-    example: '2025-01-02T15:30:00.000Z',
-    type: String,
-    format: 'date-time',
-  })
-  updatedAt: Date;
+  id: number;
 }
