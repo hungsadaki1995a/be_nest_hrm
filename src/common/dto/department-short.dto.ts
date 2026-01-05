@@ -1,33 +1,45 @@
-import { UserShortDto } from '@/common/dto';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import {
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Length,
+  ValidateIf,
+} from 'class-validator';
 
-export class DepartmentShortDto {
-  @ApiProperty({ example: '1' })
-  id: number;
-
-  @ApiProperty({ example: 'GDC' })
+export class DepartmentBaseDto {
+  @ApiProperty({
+    example: 'GDC',
+    description: 'Unique Department code (3–5 chars)',
+  })
+  @IsString()
+  @IsNotEmpty()
+  @Length(3, 5)
   code: string;
 
-  @ApiProperty({ example: 'Global Development Center' })
+  @ApiProperty({
+    example: 'Global Development Center',
+    description: "Department's name",
+  })
+  @IsString()
+  @IsNotEmpty()
   name: string;
 
-  @ApiProperty({ example: 'Global Development Center department' })
-  description?: string;
-
-  @ApiProperty({ type: UserShortDto, nullable: true })
-  head?: UserShortDto | null;
-
-  @ApiProperty({
-    example: '2025-01-01T10:00:00.000Z',
-    type: String,
-    format: 'date-time',
+  @ApiPropertyOptional({
+    nullable: true,
+    example: 'Global Development Center Department',
+    description: 'Describe about department',
   })
-  createdAt: Date;
+  @ValidateIf((o: DepartmentBaseDto) => o.description !== null)
+  @IsString()
+  @IsOptional()
+  description?: string | null;
+}
 
+export class DepartmentShortDto extends DepartmentBaseDto {
   @ApiProperty({
-    example: '2025-01-02T15:30:00.000Z',
-    type: String,
-    format: 'date-time',
+    example: 1,
+    description: 'Unique Department ID',
   })
-  updatedAt: Date;
+  id: number;
 }
