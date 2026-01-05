@@ -15,14 +15,20 @@ export class SearchQueryDto {
   @IsOptional()
   query?: string;
 
-  @ApiPropertyOptional({ example: DEFAULT_PAGE })
+  @ApiPropertyOptional({
+    example: DEFAULT_PAGE,
+    description: 'Page number',
+  })
   @Type(() => Number)
   @IsInt()
   @Min(1)
   @IsOptional()
   page?: number = DEFAULT_PAGE;
 
-  @ApiPropertyOptional({ example: DEFAULT_PAGE_SIZE })
+  @ApiPropertyOptional({
+    example: DEFAULT_PAGE_SIZE,
+    description: 'Page size',
+  })
   @Type(() => Number)
   @IsInt()
   @Min(1)
@@ -33,6 +39,7 @@ export class SearchQueryDto {
     enum: SortField,
     default: SortField.CREATED_AT,
     example: SortField.CREATED_AT,
+    description: 'Sort by',
   })
   @Transform(transformSortBy)
   @IsEnum(SortField)
@@ -43,6 +50,7 @@ export class SearchQueryDto {
     enum: SortOrder,
     default: SortOrder.DESC,
     example: SortOrder.DESC,
+    description: 'Order',
   })
   @Transform(transformSortOrder)
   @IsEnum(SortOrder)
