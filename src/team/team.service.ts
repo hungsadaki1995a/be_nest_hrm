@@ -1,8 +1,8 @@
+import { AppException } from '@/app.exception';
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { teamError } from './constants/team.error';
-import { AppException } from '@/app.exception';
 import { teamSelect } from './constants/team.select';
 import { TeamCreateDto, TeamUpdateDto } from './dto/team.input.dto';
 
@@ -89,7 +89,7 @@ export class TeamService {
       return await this.prisma.team.create({
         data: {
           ...payload,
-          members: this.mapMemberIdsToConnect(payload.memberIds),
+          // members: this.mapMemberIdsToConnect(payload.memberIds),
         },
         select: teamSelect,
       });
@@ -130,7 +130,7 @@ export class TeamService {
         where: { id },
         data: {
           ...payload,
-          members: this.mapMemberIdsToConnect(payload.memberIds),
+          // members: this.mapMemberIdsToConnect(payload.memberIds),
         },
         select: teamSelect,
       });
@@ -142,13 +142,13 @@ export class TeamService {
   async delete(id: number) {
     await this.ensureTeamExists(id);
 
-    const usedCount = await this.prisma.user.count({
-      where: { teamId: id },
-    });
+    // const usedCount = await this.prisma.user.count({
+    //   where: { teamId: id },
+    // });
 
-    if (usedCount > 0) {
-      throw new AppException(teamError.cannotDelete);
-    }
+    // if (usedCount > 0) {
+    //   throw new AppException(teamError.cannotDelete);
+    // }
 
     await this.prisma.team.delete({ where: { id } });
 
