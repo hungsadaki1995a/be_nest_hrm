@@ -14,54 +14,55 @@ datasource db {
 }
 
 model Auth {
-  id            Int      @id @default(autoincrement())
-  employeeId    String   @unique
-  password      String   
-  isActive      Boolean  @default(true)
-  userId        Int      @unique
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  lastLoginAt   DateTime?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id          Int       @id @default(autoincrement())
+  employeeId  String    @unique
+  password    String
+  isActive    Boolean   @default(true)
+  userId      Int       @unique
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lastLoginAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
   @@map("auth")
 }
 
 model User {
-  id            Int      @id @default(autoincrement())
-  employeeId    String   @unique
-  fullName      String
-  email         String?  @unique
-  phoneNumber   String?  @unique
-  roles         UserRole[]
-  dateOfBirth   DateTime?
-  address       String?
-  onBoardAt     DateTime?
-  avatarUrl     String?
-  gender        String?
-  auth          Auth?
+  id          Int        @id @default(autoincrement())
+  employeeId  String     @unique
+  fullName    String
+  email       String?    @unique
+  phoneNumber String?    @unique
+  roles       UserRole[]
+  dateOfBirth DateTime?
+  address     String?
+  onBoardAt   DateTime?
+  avatarUrl   String?
+  gender      String?
+  auth        Auth?
 
-  headOf        Department[]  @relation("DepartmentHead")
-  leadOf        Team[]        @relation("TeamLeader")
-  membersOf     TeamMember[]
+  headOf    Department[] @relation("DepartmentHead")
+  leadOf    Team[]       @relation("TeamLeader")
+  membersOf TeamMember[]
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  isActive      Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isActive  Boolean  @default(true)
 
   @@map("users")
 }
 
 model Role {
-  id          Int        @id @default(autoincrement())
-  code        String     @unique
+  id          Int     @id @default(autoincrement())
+  code        String  @unique
   name        String
   description String?
 
-  users       UserRole[]
+  users UserRole[]
 
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  isActive    Boolean    @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isActive  Boolean  @default(true)
 
   @@map("roles")
 }
@@ -80,49 +81,49 @@ model UserRole {
 }
 
 model Page {
-  id    Int    @id @default(autoincrement())
-  code  String @unique   // DASHBOARD, USER, REPORT
-  name  String
+  id   Int    @id @default(autoincrement())
+  code String @unique // DASHBOARD, USER, REPORT
+  name String
 
   @@map("pages")
 }
 
 model Department {
-  id          Int      @id @default(autoincrement())
-  code        String   @unique
+  id          Int     @id @default(autoincrement())
+  code        String  @unique
   name        String
   description String?
 
-  headId      Int
-  head        User     @relation("DepartmentHead", fields: [headId], references: [id], onDelete: Restrict)
+  headId Int
+  head   User @relation("DepartmentHead", fields: [headId], references: [id], onDelete: Restrict)
 
-  teams       Team[]
+  teams Team[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  isActive    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isActive  Boolean  @default(true)
 
   @@index([headId])
   @@map("departments")
 }
 
 model Team {
-  id            Int        @id @default(autoincrement())
-  code          String     @unique
-  name          String
-  description   String?
+  id          Int     @id @default(autoincrement())
+  code        String  @unique
+  name        String
+  description String?
 
-  departmentId  Int
-  department    Department @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+  departmentId Int
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Restrict)
 
-  leaderId      Int?
-  leader        User?      @relation("TeamLeader", fields: [leaderId], references: [id], onDelete: SetNull)
+  leaderId Int?
+  leader   User? @relation("TeamLeader", fields: [leaderId], references: [id], onDelete: SetNull)
 
-  members       TeamMember[]
+  members TeamMember[]
 
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-  isActive      Boolean    @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isActive  Boolean  @default(true)
 
   @@index([departmentId])
   @@index([leaderId])
