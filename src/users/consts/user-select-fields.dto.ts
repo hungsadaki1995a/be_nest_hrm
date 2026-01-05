@@ -33,6 +33,7 @@ export const userDetailSelectFields = {
   isActive: true,
   gender: true,
   address: true,
+  identityId: true,
   roles: {
     select: {
       role: {

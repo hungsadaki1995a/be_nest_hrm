@@ -15,6 +15,7 @@ import {
   userListSelectFields,
 } from './consts/user-select-fields.dto';
 import { UserCreateDto } from './dto/create-user.dto';
+import { UserUpdateDto } from './dto/update-user.dto';
 import { UserDetailDto } from './dto/user-detail.dto';
 import { UserSearchDto } from './dto/user-search.dto';
 
@@ -105,6 +106,7 @@ export class UsersService {
         isActive: employee.isActive,
         phoneNumber: employee.phoneNumber || '',
         avatarUrl: employee.avatarUrl || '',
+        identityId: employee.identityId || '',
       },
       id: employee.id,
       employeeInfo: {
@@ -165,5 +167,63 @@ export class UsersService {
         totalPages: Math.ceil(total / limit),
       },
     };
+  }
+
+  async update(
+    employeeId: string,
+    payload: UserUpdateDto,
+  ): Promise<UserDetailDto> {
+    const role = await this.prisma.user.findUnique({
+      where: { employeeId },
+    });
+
+    if (!role) {
+      throw new AppException('User not found', HttpStatus.NOT_FOUND);
+    }
+
+    const { basicInfo = {}, employeeInfo } = payload;
+
+    try {
+      await this.prisma.user.update({
+        where: { employeeId },
+        data: {
+          ...basicInfo,
+          ...(employeeInfo || {}),
+          employeeId: employeeId,
+          ...(employeeInfo?.roleIds && {
+            roles: {
+              create: employeeInfo.roleIds.map((roleId) => ({
+                role: {
+                  connect: {
+                    id: roleId,
+                  },
+                },
+              })),
+            },
+          }),
+          ...(employeeInfo?.teamId && {
+            team: {
+              connect: { id: employeeInfo.teamId },
+            },
+          }),
+        },
+      });
+
+      return await this.findByEmployeeId(employeeId);
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        const fields = error.meta?.target as string[];
+        throw new AppException(
+          getMessage(ErrorMessage.duplicate, [fields.join(', ')]),
+        );
+      }
+      throw new AppException(
+        'Unexpected error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }

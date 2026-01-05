@@ -39,6 +39,7 @@ model User {
   onBoardAt   DateTime?
   avatarUrl   String?
   gender      String?
+  identityId  String?
   auth        Auth?
 
   headOf    Department[] @relation("DepartmentHead")

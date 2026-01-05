@@ -6,6 +6,7 @@ import {
   Get,
   Param,
   Post,
+  Put,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -16,6 +17,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { UserCreateDto } from './dto/create-user.dto';
+import { UserUpdateDto } from './dto/update-user.dto';
 import { UserDetailDto } from './dto/user-detail.dto';
 import { UserListResponseDto } from './dto/user-list-response.dto';
 import { UserSearchDto } from './dto/user-search.dto';
@@ -54,5 +56,13 @@ export class UsersController {
   @Post()
   create(@Body() payload: UserCreateDto) {
     return this.service.create(payload);
+  }
+
+  @Put(':employeeId')
+  update(
+    @Param('employeeId') employeeId: string,
+    @Body() payload: UserUpdateDto,
+  ) {
+    return this.service.update(employeeId, payload);
   }
 }
