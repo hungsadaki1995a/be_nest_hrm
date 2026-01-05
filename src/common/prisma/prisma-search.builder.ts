@@ -7,7 +7,11 @@ type StringSearch = {
 
 export function icontains(value?: string): StringSearch | undefined {
   if (!value) return;
-  return { contains: value, mode: 'insensitive' };
+
+  const v = value.trim();
+  if (!v) return;
+
+  return { contains: v, mode: 'insensitive' };
 }
 
 export function buildPagination(
