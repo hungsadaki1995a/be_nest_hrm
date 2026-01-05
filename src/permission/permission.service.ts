@@ -1,14 +1,9 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { PermissionResponseDto } from './dto/permission-reponse.dto';
-
-// type Permission = {
-//   canCreate: boolean | null;
-//   canRead: boolean | null;
-//   canUpdate: boolean | null;
-//   canDelete: boolean | null;
-//   page: { code: string };
-// };
+import {
+  PermissionPageCodeEnum,
+  PermissionResponseDto,
+} from './dto/permission-reponse.dto';
 
 @Injectable()
 export class PermissionService {
@@ -22,9 +17,7 @@ export class PermissionService {
           include: {
             role: {
               include: {
-                permissions: {
-                  include: { page: true },
-                },
+                permissions: true,
               },
             },
           },
@@ -36,11 +29,20 @@ export class PermissionService {
       throw new UnauthorizedException();
     }
 
-    const result: PermissionResponseDto = { permissions: {} };
+    let result: PermissionResponseDto = {
+      permissions: {
+        [PermissionPageCodeEnum.DASHBOARD]: [],
+        [PermissionPageCodeEnum.USER]: [],
+        [PermissionPageCodeEnum.ROLE]: [],
+        [PermissionPageCodeEnum.PERMISSION]: [],
+        [PermissionPageCodeEnum.DEPARTMENT]: [],
+        [PermissionPageCodeEnum.TEAM]: [],
+      },
+    };
 
     for (const roleObj of employee.roles) {
       for (const permission of roleObj.role.permissions) {
-        const page = permission.page.code;
+        const page = permission.page as unknown as PermissionPageCodeEnum;
         if (!result[page]) {
           result.permissions[page] = [];
         }
@@ -62,6 +64,18 @@ export class PermissionService {
         }
       }
     }
+
+    //TODO: Just for dummy data
+    result = {
+      permissions: {
+        [PermissionPageCodeEnum.DASHBOARD]: ['C', 'R', 'U', 'D'],
+        [PermissionPageCodeEnum.DEPARTMENT]: ['C', 'R', 'U', 'D'],
+        [PermissionPageCodeEnum.ROLE]: ['C', 'R', 'U', 'D'],
+        [PermissionPageCodeEnum.TEAM]: ['C', 'R', 'U', 'D'],
+        [PermissionPageCodeEnum.USER]: ['C', 'R', 'U', 'D'],
+        [PermissionPageCodeEnum.PERMISSION]: ['C', 'R', 'U', 'D'],
+      },
+    };
 
     return result;
   }

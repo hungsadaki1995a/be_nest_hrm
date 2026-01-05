@@ -82,15 +82,6 @@ model UserRole {
   @@map("user_roles")
 }
 
-model Page {
-  id   Int    @id @default(autoincrement())
-  code String @unique // DASHBOARD, USER, REPORT
-  name String
-  permission RolePermission[]
-
-  @@map("pages")
-}
-
 model Department {
   id          Int     @id @default(autoincrement())
   code        String  @unique
@@ -146,17 +137,16 @@ model TeamMember {
 
 
 model RolePermission {
-  roleId Int
-  pageId Int
+  roleId      Int
+  page        String  @unique
 
-  canCreate  Boolean  @default(false)
-  canRead  Boolean  @default(false)
-  canUpdate  Boolean  @default(false)
-  canDelete  Boolean  @default(false)
+  canCreate   Boolean  @default(false)
+  canRead     Boolean  @default(false)
+  canUpdate   Boolean  @default(false)
+  canDelete   Boolean  @default(false)
 
   role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  page Page @relation(fields: [pageId], references: [id], onDelete: Cascade)
 
-  @@id([roleId, pageId])
+  @@id([roleId, page])
   @@map("role_permission")
 }

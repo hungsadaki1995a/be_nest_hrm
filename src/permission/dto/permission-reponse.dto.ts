@@ -1,5 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
 
+export enum PermissionPageCodeEnum {
+  DASHBOARD = 'DASHBOARD',
+  USER = 'USER',
+  ROLE = 'ROLE',
+  PERMISSION = 'PERMISSION',
+  DEPARTMENT = 'DEPARTMENT',
+  TEAM = 'TEAM',
+}
+
 export class PermissionResponseDto {
   @ApiProperty({
     example: {
@@ -15,5 +24,5 @@ export class PermissionResponseDto {
       },
     },
   })
-  permissions: Record<string, ('C' | 'R' | 'U' | 'D')[]>;
+  permissions: Record<PermissionPageCodeEnum, ('C' | 'R' | 'U' | 'D')[]>;
 }
