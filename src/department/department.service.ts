@@ -1,17 +1,17 @@
+import { AppException } from '@/app.exception';
+import { normalizePaginationAndSort } from '@/common/helpers';
+import { buildPagination } from '@/common/prisma';
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { AppException } from '@/app.exception';
-import { DepartmentSearchDto } from './dto/department.search.dto';
-import { buildDepartmentWhere } from './queries/department.search';
-import { buildPagination } from '@/common/prisma';
-import { normalizePaginationAndSort } from '@/common/helpers';
+import { departmentError } from './constants/department.error';
+import { departmentSelect } from './constants/department.select';
 import {
   DepartmentCreateDto,
   DepartmentUpdateDto,
 } from './dto/department.input.dto';
-import { departmentError } from './constants/department.error';
-import { departmentSelect } from './constants/department.select';
+import { DepartmentSearchDto } from './dto/department.search.dto';
+import { buildDepartmentWhere } from './queries/department.search';
 
 @Injectable()
 export class DepartmentService {

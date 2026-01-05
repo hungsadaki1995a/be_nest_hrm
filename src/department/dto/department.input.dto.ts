@@ -37,7 +37,7 @@ export class DepartmentCreateDto {
   })
   @IsInt()
   @IsOptional()
-  headId?: number;
+  headId: number;
 }
 
 export class DepartmentUpdateDto {
