@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { PermissionResponseDto } from './dto/permission-reponse.dto';
 
 // type Permission = {
 //   canCreate: boolean | null;
@@ -13,43 +14,54 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class PermissionService {
   constructor(private prisma: PrismaService) {}
 
-  async getUserPermissions(employeeId: string) {
-    const user = await this.prisma.user.findUnique({
+  async getPermissions(employeeId: string): Promise<PermissionResponseDto> {
+    const employee = await this.prisma.user.findUnique({
       where: { employeeId },
-      // include: {
-      //   group: {
-      //     include: {
-      //       permissions: {
-      //         include: {
-      //           page: true,
-      //         },
-      //       },
-      //     },
-      //   },
-      // },
+      include: {
+        roles: {
+          include: {
+            role: {
+              include: {
+                permissions: {
+                  include: { page: true },
+                },
+              },
+            },
+          },
+        },
+      },
     });
 
-    console.log('user', user);
+    if (!employee) {
+      throw new UnauthorizedException();
+    }
 
-    const result: Record<string, string[]> = {};
+    const result: PermissionResponseDto = { permissions: {} };
 
-    // if (!user || !user.group) {
-    //   throw new NotFoundException('User or group not found');
-    // }
+    for (const roleObj of employee.roles) {
+      for (const permission of roleObj.role.permissions) {
+        const page = permission.page.code;
+        if (!result[page]) {
+          result.permissions[page] = [];
+        }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-    // const permissions = user.group.permissions as Permission[];
+        if (permission.canCreate) {
+          result.permissions[page].push('C');
+        }
 
-    // for (const perm of permissions) {
-    //   const actions: string[] = [];
+        if (permission.canRead) {
+          result.permissions[page].push('R');
+        }
 
-    //   if (perm.canCreate) actions.push('C');
-    //   if (perm.canRead) actions.push('R');
-    //   if (perm.canUpdate) actions.push('U');
-    //   if (perm.canDelete) actions.push('D');
+        if (permission.canUpdate) {
+          result.permissions[page].push('U');
+        }
 
-    //   result[perm.page.code] = actions;
-    // }
+        if (permission.canDelete) {
+          result.permissions[page].push('D');
+        }
+      }
+    }
 
     return result;
   }
