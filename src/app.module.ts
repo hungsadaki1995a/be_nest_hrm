@@ -5,8 +5,6 @@ import { AuthModule } from './auth/auth.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { PermissionService } from './permission/permission.service';
 import { PermissionController } from './permission/permission.controller';
-import { GroupController } from './group/group.controller';
-import { GroupService } from './group/group.service';
 import { RoleService } from './role/role.service';
 import { RoleController } from './role/role.controller';
 import { UsersController } from './users/users.controller';
@@ -21,7 +19,6 @@ import { TeamService } from './team/team.service';
   controllers: [
     AppController,
     PermissionController,
-    GroupController,
     RoleController,
     UsersController,
     DepartmentController,
@@ -30,7 +27,6 @@ import { TeamService } from './team/team.service';
   providers: [
     AppService,
     PermissionService,
-    GroupService,
     RoleService,
     UsersService,
     DepartmentService,
