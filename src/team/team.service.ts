@@ -5,6 +5,10 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { teamError } from './constants/team.error';
 import { teamSelect } from './constants/team.select';
 import { TeamCreateDto, TeamUpdateDto } from './dto/team.input.dto';
+import { TeamSearchDto } from './dto/team.search.dto';
+import { normalizePaginationAndSort } from '@/common/helpers';
+import { buildTeamWhere } from './queries/team.search';
+import { buildPagination } from '@/common/prisma';
 
 @Injectable()
 export class TeamService {
@@ -76,7 +80,10 @@ export class TeamService {
     if (!memberIds || memberIds.length === 0) return undefined;
 
     return {
-      connect: memberIds.map((id) => ({ id })),
+      deleteMany: {},
+      create: memberIds.map((userId) => ({
+        user: { connect: { id: userId } },
+      })),
     };
   }
 
@@ -89,7 +96,7 @@ export class TeamService {
       return await this.prisma.team.create({
         data: {
           ...payload,
-          // members: this.mapMemberIdsToConnect(payload.memberIds),
+          members: this.mapMemberIdsToConnect(payload.memberIds),
         },
         select: teamSelect,
       });
@@ -98,12 +105,40 @@ export class TeamService {
     }
   }
 
-  async findAll() {
-    return await this.prisma.team.findMany({
-      // where: { isActive: true },
-      orderBy: { createdAt: 'desc' },
-      select: teamSelect,
-    });
+  async findAll(query: TeamSearchDto) {
+    const {
+      page,
+      limit,
+      sortBy,
+      orderBy: sortOrder,
+    } = normalizePaginationAndSort(query);
+
+    const where = buildTeamWhere(query);
+    const { skip, take } = buildPagination(page, limit);
+    const orderBy: Prisma.DepartmentOrderByWithRelationInput = {
+      [sortBy]: sortOrder,
+    };
+
+    const [items, total] = await Promise.all([
+      this.prisma.team.findMany({
+        where,
+        skip,
+        take,
+        orderBy,
+        select: teamSelect,
+      }),
+      this.prisma.team.count({ where }),
+    ]);
+
+    return {
+      data: items,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   async findById(id: number) {
@@ -130,7 +165,7 @@ export class TeamService {
         where: { id },
         data: {
           ...payload,
-          // members: this.mapMemberIdsToConnect(payload.memberIds),
+          members: this.mapMemberIdsToConnect(payload.memberIds),
         },
         select: teamSelect,
       });

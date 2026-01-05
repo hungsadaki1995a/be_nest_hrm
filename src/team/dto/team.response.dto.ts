@@ -1,27 +1,21 @@
-import { UserShortDto } from '@/common/dto';
+import { TeamShortDto, UserShortDto } from '@/common/dto';
 import { DepartmentShortDto } from '@/common/dto';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
+import { ValidateNested } from 'class-validator';
 
-export class TeamResponseDto {
-  @ApiProperty({ example: '1' })
-  id: number;
-
-  @ApiProperty({ example: 'FE' })
-  code: string;
-
-  @ApiProperty({ example: 'Frontend' })
-  name: string;
-
-  @ApiProperty({ example: 'GDC Frontend Team', nullable: true })
-  description?: string | null;
-
+export class TeamResponseDto extends TeamShortDto {
+  @Type(() => DepartmentShortDto)
   @ApiProperty({ type: () => DepartmentShortDto })
   department: DepartmentShortDto;
 
-  @ApiProperty({ type: UserShortDto, nullable: true })
+  @Type(() => UserShortDto)
+  @ApiPropertyOptional({ type: () => UserShortDto, nullable: true })
   leader?: UserShortDto | null;
 
-  @ApiProperty({ type: [UserShortDto] })
+  @ApiProperty({ type: () => [UserShortDto] })
+  @ValidateNested({ each: true })
+  @Type(() => UserShortDto)
   members: UserShortDto[];
 
   @ApiProperty({
