@@ -1,4 +1,5 @@
-import { Controller, Get, NotFoundException, Param } from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
+import { PermissionResponseDto } from './dto/permission-reponse.dto';
 import { PermissionService } from './permission.service';
 
 @Controller('permissions')
@@ -6,14 +7,10 @@ export class PermissionController {
   constructor(private permissionService: PermissionService) {}
 
   @Get(':employeeId')
-  async getPermissions(@Param('employeeId') employeeId: string) {
-    const permissions =
-      await this.permissionService.getUserPermissions(employeeId);
-
-    if (!permissions) {
-      throw new NotFoundException('User not found');
-    }
-
+  async getPermissions(
+    @Param('employeeId') employeeId: string,
+  ): Promise<PermissionResponseDto> {
+    const permissions = await this.permissionService.getPermissions(employeeId);
     return permissions;
   }
 }

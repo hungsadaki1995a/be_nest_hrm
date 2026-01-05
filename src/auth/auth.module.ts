@@ -1,3 +1,4 @@
+import { PermissionModule } from '@/permission/permission.module';
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthController } from './auth.controller';
@@ -10,6 +11,8 @@ import { JwtStrategy } from './strategies/jwt.strategy';
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: '1d' },
     }),
+    PermissionModule,
+    AuthModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],

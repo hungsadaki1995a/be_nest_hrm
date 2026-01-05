@@ -4,19 +4,22 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
-  Put,
   Query,
   UseGuards,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
-  ApiBody,
+  ApiCreatedResponse,
+  ApiNoContentResponse,
   ApiOkResponse,
+  ApiOperation,
   ApiParam,
-  ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
 import { DepartmentService } from './department.service';
@@ -35,40 +38,53 @@ export class DepartmentController {
   constructor(private readonly service: DepartmentService) {}
 
   @Post()
+  @ApiCreatedResponse({ type: DepartmentResponseDto })
+  @ApiOperation({
+    summary: 'Create Department',
+    description: 'Create a new department',
+  })
   create(@Body() payload: DepartmentCreateDto) {
     return this.service.create(payload);
   }
 
   @Get()
   @ApiOkResponse({ type: [DepartmentResponseDto] })
-  @ApiQuery({ name: 'query', required: false })
-  @ApiQuery({ name: 'code', required: false })
-  @ApiQuery({ name: 'name', required: false })
-  @ApiQuery({ name: 'description', required: false })
-  @ApiQuery({
-    name: 'head',
-    required: false,
+  @ApiOperation({
+    summary: 'Get all departments',
+    description: 'Retrieve all departments with optional filters',
   })
-  @ApiQuery({
-    name: 'team',
-    required: false,
-  })
-  @ApiQuery({ name: 'page', required: false })
-  @ApiQuery({ name: 'limit', required: false })
-  @ApiQuery({ name: 'sortBy', required: false })
-  @ApiQuery({ name: 'orderBy', required: false })
   findAll(@Query() query: DepartmentSearchDto) {
     return this.service.findAll(query);
   }
 
   @Get(':id')
   @ApiOkResponse({ type: DepartmentResponseDto })
+  @ApiParam({
+    name: 'id',
+    type: Number,
+    example: 1,
+    description: 'Unique department identifier',
+  })
+  @ApiOperation({
+    summary: 'Get team by ID',
+    description: 'Retrieve a single department by its unique identifier',
+  })
   findById(@Param('id', ParseIntPipe) id: number) {
     return this.service.findById(id);
   }
 
-  @Put(':id')
-  @ApiBody({ type: DepartmentUpdateDto })
+  @Patch(':id')
+  @ApiOkResponse({ type: DepartmentResponseDto })
+  @ApiParam({
+    name: 'id',
+    type: Number,
+    example: 1,
+    description: 'Unique department identifier',
+  })
+  @ApiOperation({
+    summary: 'Update department',
+    description: 'Update an existing department',
+  })
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() payload: DepartmentUpdateDto,
@@ -77,12 +93,19 @@ export class DepartmentController {
   }
 
   @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiNoContentResponse({ description: 'Department deleted successfully' })
   @ApiParam({
     name: 'id',
     type: Number,
+    example: 1,
     description: 'Department ID',
   })
-  delete(@Param('id', ParseIntPipe) id: number) {
-    return this.service.delete(id);
+  @ApiOperation({
+    summary: 'Delete department',
+    description: 'Delete a department',
+  })
+  async delete(@Param('id', ParseIntPipe) id: number) {
+    await this.service.delete(id);
   }
 }

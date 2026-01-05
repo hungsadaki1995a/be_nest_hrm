@@ -3,30 +3,40 @@ import { IsOptional, IsString } from 'class-validator';
 import { SearchQueryDto } from '@/common/dto/search-query.dto';
 
 export class DepartmentSearchDto extends SearchQueryDto {
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    example: 'GDC',
+    description: 'Unique department code',
+  })
   @IsString()
   @IsOptional()
   code?: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    example: 'Global Development Center',
+    description: "Department's name",
+  })
   @IsString()
   @IsOptional()
   name?: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    nullable: true,
+    example: 'Global Development Center Department',
+    description: 'Describe about department',
+  })
   @IsString()
   @IsOptional()
   description?: string;
 
   @ApiPropertyOptional({
-    description: 'Search by head user (name, employee ID, email, phone)',
+    description: 'Search by Head User (name, employee ID, email, phone)',
   })
   @IsString()
   @IsOptional()
   head?: string;
 
   @ApiPropertyOptional({
-    description: 'Search by team (name, code, description)',
+    description: 'Search by Team (name, code, description)',
   })
   @IsString()
   @IsOptional()

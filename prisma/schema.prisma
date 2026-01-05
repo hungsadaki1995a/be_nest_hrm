@@ -60,6 +60,7 @@ model Role {
   description String?
 
   users UserRole[]
+  permissions RolePermission[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -79,14 +80,6 @@ model UserRole {
 
   @@id([userId, roleId])
   @@map("user_roles")
-}
-
-model Page {
-  id   Int    @id @default(autoincrement())
-  code String @unique // DASHBOARD, USER, REPORT
-  name String
-
-  @@map("pages")
 }
 
 model Department {
@@ -140,4 +133,20 @@ model TeamMember {
 
   @@id([teamId, userId])
   @@map("team_members")
+}
+
+
+model RolePermission {
+  roleId      Int
+  page        String  @unique
+
+  canCreate   Boolean  @default(false)
+  canRead     Boolean  @default(false)
+  canUpdate   Boolean  @default(false)
+  canDelete   Boolean  @default(false)
+
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, page])
+  @@map("role_permission")
 }

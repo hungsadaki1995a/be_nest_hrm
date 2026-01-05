@@ -7,39 +7,6 @@ export function buildDepartmentWhere(
 ): Prisma.DepartmentWhereInput {
   const AND: Prisma.DepartmentWhereInput[] = [];
 
-  if (dto.code) AND.push({ code: icontains(dto.code) });
-  if (dto.name) AND.push({ name: icontains(dto.name) });
-  if (dto.description) AND.push({ description: icontains(dto.description) });
-
-  if (dto.head) {
-    AND.push({
-      head: {
-        is: {
-          OR: [
-            { fullName: icontains(dto.head) },
-            { employeeId: icontains(dto.head) },
-            { email: icontains(dto.head) },
-            { phoneNumber: icontains(dto.head) },
-          ],
-        },
-      },
-    });
-  }
-
-  if (dto.team) {
-    AND.push({
-      teams: {
-        some: {
-          OR: [
-            { code: icontains(dto.team) },
-            { name: icontains(dto.team) },
-            { description: icontains(dto.team) },
-          ],
-        },
-      },
-    });
-  }
-
   if (dto.query) {
     AND.push({
       OR: [
@@ -71,6 +38,39 @@ export function buildDepartmentWhere(
         },
       ],
     });
+  } else {
+    if (dto.code) AND.push({ code: icontains(dto.code) });
+    if (dto.name) AND.push({ name: icontains(dto.name) });
+    if (dto.description) AND.push({ description: icontains(dto.description) });
+
+    if (dto.head) {
+      AND.push({
+        head: {
+          is: {
+            OR: [
+              { fullName: icontains(dto.head) },
+              { employeeId: icontains(dto.head) },
+              { email: icontains(dto.head) },
+              { phoneNumber: icontains(dto.head) },
+            ],
+          },
+        },
+      });
+    }
+
+    if (dto.team) {
+      AND.push({
+        teams: {
+          some: {
+            OR: [
+              { code: icontains(dto.team) },
+              { name: icontains(dto.team) },
+              { description: icontains(dto.team) },
+            ],
+          },
+        },
+      });
+    }
   }
 
   return AND.length ? { AND } : {};
