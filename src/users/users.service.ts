@@ -18,6 +18,7 @@ import { UserDetailDto } from './dto/user-detail.dto';
 import { UserSearchDto } from './dto/user-search.dto';
 import { normalizePaginationAndSort } from '@/utils/pagination-sort.util';
 import { buildPagination, icontains } from '@/utils/search.util';
+import { UserSortField } from './consts/user.sort';
 
 @Injectable()
 export class UsersService {
@@ -124,7 +125,9 @@ export class UsersService {
       limit,
       sortBy,
       orderBy: sortOrder,
-    } = normalizePaginationAndSort(searchCondition);
+    } = normalizePaginationAndSort(searchCondition, {
+      sortBy: UserSortField.CREATED_AT,
+    });
 
     const AND: Prisma.UserWhereInput[] = [];
     const query = searchCondition.query;

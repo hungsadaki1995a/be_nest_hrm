@@ -1,106 +1,111 @@
 import { Prisma } from '@prisma/client';
 import { TeamSearchDto } from '../dto/team.search.dto';
 import { icontains } from '@/utils/search.util';
+import { TeamSearchType } from '../constants/team.search';
 
 export function buildTeamWhere(dto: TeamSearchDto): Prisma.TeamWhereInput {
-  const AND: Prisma.TeamWhereInput[] = [];
+  const { query, type } = dto;
 
-  if (dto.query) {
-    AND.push({
-      OR: [
-        { code: icontains(dto.query) },
-        { name: icontains(dto.query) },
-        { description: icontains(dto.query) },
-        {
-          department: {
-            is: {
-              OR: [
-                { code: icontains(dto.query) },
-                { name: icontains(dto.query) },
-                { description: icontains(dto.query) },
-              ],
-            },
-          },
-        },
-        {
-          leader: {
-            is: {
-              OR: [
-                { fullName: icontains(dto.query) },
-                { employeeId: icontains(dto.query) },
-                { email: icontains(dto.query) },
-                { phoneNumber: icontains(dto.query) },
-              ],
-            },
-          },
-        },
-        {
-          members: {
-            some: {
-              user: {
-                OR: [
-                  { fullName: icontains(dto.query) },
-                  { employeeId: icontains(dto.query) },
-                  { email: icontains(dto.query) },
-                  { phoneNumber: icontains(dto.query) },
-                ],
-              },
-            },
-          },
-        },
-      ],
-    });
-  } else {
-    if (dto.code) AND.push({ code: icontains(dto.code) });
-    if (dto.name) AND.push({ name: icontains(dto.name) });
-    if (dto.description) AND.push({ description: icontains(dto.description) });
+  if (!query) return {};
 
-    if (dto.department) {
-      AND.push({
-        department: {
-          is: {
-            OR: [
-              { code: icontains(dto.department) },
-              { name: icontains(dto.department) },
-              { description: icontains(dto.department) },
-            ],
-          },
-        },
-      });
-    }
+  switch (type) {
+    case TeamSearchType.TEAM:
+      return {
+        OR: [
+          { code: icontains(query) },
+          { name: icontains(query) },
+          { description: icontains(query) },
+        ],
+      };
 
-    if (dto.leader) {
-      AND.push({
+    case TeamSearchType.LEADER:
+      return {
         leader: {
           is: {
             OR: [
-              { fullName: icontains(dto.leader) },
-              { employeeId: icontains(dto.leader) },
-              { email: icontains(dto.leader) },
-              { phoneNumber: icontains(dto.leader) },
+              { fullName: icontains(query) },
+              { employeeId: icontains(query) },
+              { email: icontains(query) },
+              { phoneNumber: icontains(query) },
             ],
           },
         },
-      });
-    }
+      };
 
-    if (dto.member) {
-      AND.push({
+    case TeamSearchType.MEMBER:
+      return {
         members: {
           some: {
             user: {
               OR: [
-                { fullName: icontains(dto.member) },
-                { employeeId: icontains(dto.member) },
-                { email: icontains(dto.member) },
-                { phoneNumber: icontains(dto.member) },
+                { fullName: icontains(query) },
+                { employeeId: icontains(query) },
+                { email: icontains(query) },
+                { phoneNumber: icontains(query) },
               ],
             },
           },
         },
-      });
-    }
-  }
+      };
 
-  return AND.length ? { AND } : {};
+    case TeamSearchType.DEPARTMENT:
+      return {
+        department: {
+          is: {
+            OR: [
+              { code: icontains(query) },
+              { name: icontains(query) },
+              { description: icontains(query) },
+            ],
+          },
+        },
+      };
+
+    case TeamSearchType.ALL:
+    default:
+      return {
+        OR: [
+          { code: icontains(query) },
+          { name: icontains(query) },
+          { description: icontains(query) },
+          {
+            department: {
+              is: {
+                OR: [
+                  { code: icontains(query) },
+                  { name: icontains(query) },
+                  { description: icontains(query) },
+                ],
+              },
+            },
+          },
+          {
+            leader: {
+              is: {
+                OR: [
+                  { fullName: icontains(query) },
+                  { employeeId: icontains(query) },
+                  { email: icontains(query) },
+                  { phoneNumber: icontains(query) },
+                ],
+              },
+            },
+          },
+          {
+            members: {
+              some: {
+                user: {
+                  OR: [
+                    { fullName: icontains(query) },
+                    { employeeId: icontains(query) },
+                    { email: icontains(query) },
+                    { phoneNumber: icontains(query) },
+                  ],
+                },
+              },
+            },
+          },
+        ],
+      };
+  }
 }

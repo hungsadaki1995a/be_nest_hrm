@@ -1,4 +1,5 @@
-import { SortField, SortOrder } from '@/types/sort.type';
+import { SortOrder } from '@/types/sort.type';
+import { TransformFnParams } from 'class-transformer';
 
 function isSortOrder(value: string): value is SortOrder {
   return Object.values(SortOrder).includes(value as SortOrder);
@@ -20,16 +21,24 @@ export function transformSortOrder({
   return;
 }
 
-export function transformSortBy({
-  value,
-}: {
-  value?: unknown;
-}): SortField | undefined {
-  if (typeof value !== 'string') return;
+export function transformSortBy<T extends string>(enumObj: Record<string, T>) {
+  return ({ value }: TransformFnParams): T | undefined => {
+    if (typeof value !== 'string') return undefined;
 
-  if (Object.values(SortField).includes(value as SortField)) {
-    return value as SortField;
-  }
+    return Object.values(enumObj).includes(value as T)
+      ? (value as T)
+      : undefined;
+  };
+}
 
-  return;
+export function applySortOrder<T extends Record<string, any>>(
+  template: T,
+  order: SortOrder,
+): T {
+  return Object.fromEntries(
+    Object.entries(template).map(([k, v]) => [
+      k,
+      typeof v === 'object' ? applySortOrder(v, order) : order,
+    ]),
+  ) as T;
 }
