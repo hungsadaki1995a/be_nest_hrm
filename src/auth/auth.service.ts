@@ -1,7 +1,7 @@
 import { AppException } from '@/app.exception';
 import {
-  JWT_ACCESS_TOKEN_EXPIRE,
-  JWT_REFRESH_TOKEN_EXPIRE,
+  TOKEN_EXPIRE_DEFAULT,
+  REFRESH_TOKEN_EXPIRE_DEFAULT,
 } from '@/constants/expired.constant';
 import { ERROR_MESSAGE } from '@/constants/message.constant';
 import { getMessage } from '@/utils/message.util';
@@ -126,25 +126,39 @@ export class AuthService {
   }
 
   async logout(req: Request) {
-    const token = req.headers.authorization?.split(' ')[1];
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader?.startsWith('Bearer ')) {
+        throw new UnauthorizedException(
+          'Missing or invalid Authorization header',
+        );
+      }
 
-    if (!token) {
-      throw new UnauthorizedException('No token provided');
+      const token = authHeader.split(' ')[1];
+      if (!token) {
+        throw new UnauthorizedException('No token provided');
+      }
+
+      type LogoutToken = { employeeId?: string };
+      const decodeToken = await this.jwtService.verifyAsync<LogoutToken>(
+        token,
+        {
+          secret: this.configService.get<string>('auth.jwt.accessToken.secret'),
+        },
+      );
+      if (!decodeToken?.employeeId) {
+        throw new UnauthorizedException('Invalid token');
+      }
+
+      await this.deactivateToken(decodeToken.employeeId);
+
+      return {
+        message: 'Logout successful',
+      };
+    } catch (error) {
+      console.error('Logout error:', error);
+      throw new AppException('Logout failed', HttpStatus.UNAUTHORIZED);
     }
-
-    type LogoutToken = { employeeId?: string };
-    const decodeToken = await this.jwtService.verifyAsync<LogoutToken>(token, {
-      secret: this.configService.get<string>('auth.jwt.accessToken.secret'),
-    });
-    if (!decodeToken?.employeeId) {
-      throw new UnauthorizedException('Invalid token');
-    }
-
-    await this.deactivateToken(decodeToken.employeeId);
-
-    return {
-      message: 'Logout successful',
-    };
   }
 
   async refreshToken(req: Request) {
@@ -228,19 +242,19 @@ export class AuthService {
   private generateTokens(payload: Record<string, any>) {
     const accessToken = this.jwtService.sign(payload as object, {
       secret: this.configService.get<string>('auth.jwt.accessToken.secret'),
-      expiresIn: JWT_ACCESS_TOKEN_EXPIRE,
+      expiresIn: TOKEN_EXPIRE_DEFAULT,
     });
 
     const refreshToken = this.jwtService.sign(payload as object, {
       secret: this.configService.get<string>('auth.jwt.refreshToken.secret'),
-      expiresIn: JWT_REFRESH_TOKEN_EXPIRE,
+      expiresIn: REFRESH_TOKEN_EXPIRE_DEFAULT,
     });
 
     return {
       accessToken,
       refreshToken,
-      accessTokenExp: JWT_ACCESS_TOKEN_EXPIRE,
-      refreshTokenExp: JWT_REFRESH_TOKEN_EXPIRE,
+      accessTokenExp: TOKEN_EXPIRE_DEFAULT,
+      refreshTokenExp: REFRESH_TOKEN_EXPIRE_DEFAULT,
     };
   }
 
