@@ -1,10 +1,32 @@
+import { SearchQueryDto } from '@/dtos/search-query.dto';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString } from 'class-validator';
-import { SearchQueryDto } from '@/common/dto/search-query.dto';
+import { IsEnum, IsOptional, IsString } from 'class-validator';
+import { TeamSearchType } from '../constants/team.search';
+import { TeamSortField } from '../constants/team.sort';
+import { Transform } from 'class-transformer';
+import { transformSortBy } from '@/utils/sort-transformer.util';
 
 export class TeamSearchDto extends SearchQueryDto {
   @ApiPropertyOptional({
-    example: 'FE',
+    description: 'Sort by field',
+    enum: TeamSortField,
+    default: TeamSortField.CREATED_AT,
+  })
+  @Transform(transformSortBy(TeamSortField))
+  @IsEnum(TeamSortField)
+  @IsOptional()
+  sortBy?: TeamSortField = TeamSortField.CREATED_AT;
+
+  @ApiPropertyOptional({
+    description: 'Type of search',
+    enum: TeamSearchType,
+    default: TeamSearchType.ALL,
+  })
+  @IsEnum(TeamSearchType)
+  @IsOptional()
+  type?: TeamSearchType = TeamSearchType.ALL;
+
+  @ApiPropertyOptional({
     description: 'Unique team code',
   })
   @IsString()
@@ -12,7 +34,6 @@ export class TeamSearchDto extends SearchQueryDto {
   code?: string;
 
   @ApiPropertyOptional({
-    example: 'Frontend',
     description: "Team's name",
   })
   @IsString()
@@ -20,9 +41,8 @@ export class TeamSearchDto extends SearchQueryDto {
   name?: string;
 
   @ApiPropertyOptional({
-    example: 'GDC Frontend Team',
-    description: "Team's description",
     nullable: true,
+    description: "Team's description",
   })
   @IsString()
   @IsOptional()

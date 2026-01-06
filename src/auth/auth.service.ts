@@ -1,6 +1,15 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { AppException } from '@/app.exception';
+import {
+  TOKEN_EXPIRE_DEFAULT,
+  REFRESH_TOKEN_EXPIRE_DEFAULT,
+} from '@/constants/expired.constant';
+import { ERROR_MESSAGE } from '@/constants/message.constant';
+import { getMessage } from '@/utils/message.util';
+import { HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { Request } from 'express';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
@@ -8,10 +17,25 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
   ) {}
 
   async login(employeeId: string, password: string) {
     //TODO: Validate request param
+    if (!employeeId) {
+      throw new AppException(
+        getMessage(ERROR_MESSAGE.required, ['Employee ID']),
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    if (!password) {
+      throw new AppException(
+        getMessage(ERROR_MESSAGE.required, ['Password']),
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
     const auth = await this.prisma.auth.findUnique({
       where: { employeeId },
       include: {
@@ -45,14 +69,16 @@ export class AuthService {
       roles,
     };
 
+    const tokens = this.generateTokens(payload);
+
     return {
-      accessToken: this.jwtService.sign(payload, {
-        expiresIn: 3600,
-      }),
-      expiresIn: 3600,
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+      expiresIn: tokens.accessTokenExp,
       user: {
         id: auth.user.id,
         employeeId: auth.employeeId,
+        roles,
       },
     };
   }
@@ -97,5 +123,169 @@ export class AuthService {
     }
 
     return employee;
+  }
+
+  async logout(req: Request) {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader?.startsWith('Bearer ')) {
+        throw new UnauthorizedException(
+          'Missing or invalid Authorization header',
+        );
+      }
+
+      const token = authHeader.split(' ')[1];
+      if (!token) {
+        throw new UnauthorizedException('No token provided');
+      }
+      try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader?.startsWith('Bearer ')) {
+          new AppException(
+            'Missing or invalid Authorization header',
+            HttpStatus.UNAUTHORIZED,
+          );
+        }
+
+        const token = authHeader?.split(' ')[1];
+        if (!token) {
+          throw new UnauthorizedException('No token provided');
+        }
+
+        type LogoutToken = { employeeId?: string };
+        const decodeToken = await this.jwtService.verifyAsync<LogoutToken>(
+          token,
+          {
+            secret: this.configService.get<string>(
+              'auth.jwt.accessToken.secret',
+            ),
+          },
+        );
+        if (!decodeToken?.employeeId) {
+          throw new UnauthorizedException('Invalid token');
+        }
+
+        await this.deactivateToken(decodeToken.employeeId);
+
+        return {
+          message: 'Logout successful',
+        };
+      } catch (error) {
+        console.error('Logout error:', error);
+        throw new AppException('Logout failed', HttpStatus.UNAUTHORIZED);
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+      throw new AppException('Logout failed', HttpStatus.UNAUTHORIZED);
+    }
+  }
+
+  async refreshToken(req: Request) {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader?.startsWith('Bearer ')) {
+        throw new UnauthorizedException(
+          'Missing or invalid Authorization header',
+        );
+      }
+
+      const refreshToken = authHeader.split(' ')[1];
+      const secret = this.configService.get<string>(
+        'auth.jwt.refreshToken.secret',
+      );
+      if (!secret) {
+        throw new AppException(
+          getMessage(ERROR_MESSAGE.missRefreshToken),
+          HttpStatus.UNAUTHORIZED,
+        );
+      }
+
+      const verifiedRaw: unknown = await this.jwtService.verifyAsync(
+        refreshToken,
+        { secret },
+      );
+      const verified = verifiedRaw as Record<string, unknown>;
+
+      const employeeId =
+        (typeof verified?.employeeId === 'string' && verified.employeeId) ||
+        (typeof verified?.sub === 'string' && verified.sub);
+      if (!employeeId) {
+        throw new AppException(
+          getMessage(ERROR_MESSAGE.missEmployeeId),
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      const auth = await this.prisma.auth.findUnique({
+        where: { employeeId },
+        include: {
+          user: {
+            include: {
+              roles: {
+                include: {
+                  role: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!auth) {
+        throw new AppException(
+          'Auth record not found or inactive',
+          HttpStatus.UNAUTHORIZED,
+        );
+      }
+
+      const roles =
+        (auth.user?.roles || [])
+          .map((r) =>
+            typeof r?.role?.code === 'string' ? r.role.code : undefined,
+          )
+          .filter((code) => Boolean(code)) || [];
+
+      const payload = {
+        sub: auth.user?.id,
+        employeeId: auth.employeeId,
+        roles,
+      };
+
+      return this.generateTokens(payload);
+    } catch (error) {
+      console.error('Refresh token error:', error);
+      throw new AppException('Invalid refresh token', HttpStatus.UNAUTHORIZED);
+    }
+  }
+
+  private generateTokens(payload: Record<string, any>) {
+    const accessToken = this.jwtService.sign(payload as object, {
+      secret: this.configService.get<string>('auth.jwt.accessToken.secret'),
+      expiresIn: TOKEN_EXPIRE_DEFAULT,
+    });
+
+    const refreshToken = this.jwtService.sign(payload as object, {
+      secret: this.configService.get<string>('auth.jwt.refreshToken.secret'),
+      expiresIn: REFRESH_TOKEN_EXPIRE_DEFAULT,
+    });
+
+    return {
+      accessToken,
+      refreshToken,
+      accessTokenExp: TOKEN_EXPIRE_DEFAULT,
+      refreshTokenExp: REFRESH_TOKEN_EXPIRE_DEFAULT,
+    };
+  }
+
+  async deactivateToken(employeeId: string) {
+    return this.prisma.auth.updateMany({
+      where: {
+        employeeId,
+      },
+      data: {
+        lastLoginAt: null,
+        updatedAt: new Date(),
+      },
+    });
   }
 }

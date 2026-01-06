@@ -26,13 +26,16 @@ import { TeamService } from './team.service';
 import { TeamCreateDto, TeamUpdateDto } from './dto/team.input.dto';
 import { TeamResponseDto } from './dto/team.response.dto';
 import { TeamSearchDto } from './dto/team.search.dto';
+import { BaseController } from '@/controllers/base.controller';
 
 @ApiTags('Teams')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth('access-token')
-@Controller('v1/teams')
-export class TeamController {
-  constructor(private readonly service: TeamService) {}
+@Controller('teams')
+export class TeamController extends BaseController {
+  constructor(private readonly service: TeamService) {
+    super();
+  }
 
   @Post()
   @ApiCreatedResponse({ type: TeamResponseDto })

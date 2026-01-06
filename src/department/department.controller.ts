@@ -29,18 +29,21 @@ import {
   DepartmentUpdateDto,
 } from './dto/department.input.dto';
 import { DepartmentResponseDto } from './dto/department.response.dto';
+import { BaseController } from '@/controllers/base.controller';
 
 @ApiTags('Department')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth('access-token')
 @Controller('departments')
-export class DepartmentController {
-  constructor(private readonly service: DepartmentService) {}
+export class DepartmentController extends BaseController {
+  constructor(private readonly service: DepartmentService) {
+    super();
+  }
 
   @Post()
   @ApiCreatedResponse({ type: DepartmentResponseDto })
   @ApiOperation({
-    summary: 'Create Department',
+    summary: 'Create department',
     description: 'Create a new department',
   })
   create(@Body() payload: DepartmentCreateDto) {
@@ -66,7 +69,7 @@ export class DepartmentController {
     description: 'Unique department identifier',
   })
   @ApiOperation({
-    summary: 'Get team by ID',
+    summary: 'Get department by ID',
     description: 'Retrieve a single department by its unique identifier',
   })
   findById(@Param('id', ParseIntPipe) id: number) {

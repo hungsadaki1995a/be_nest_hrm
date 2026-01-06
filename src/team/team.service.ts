@@ -6,9 +6,11 @@ import { teamError } from './constants/team.error';
 import { teamSelect } from './constants/team.select';
 import { TeamCreateDto, TeamUpdateDto } from './dto/team.input.dto';
 import { TeamSearchDto } from './dto/team.search.dto';
-import { normalizePaginationAndSort } from '@/common/helpers';
 import { buildTeamWhere } from './queries/team.search';
-import { buildPagination } from '@/common/prisma';
+import { normalizePaginationAndSort } from '@/utils/pagination-sort.util';
+import { buildPagination } from '@/utils/search.util';
+import { TEAM_SORT_MAP, TeamSortField } from './constants/team.sort';
+import { applySortOrder } from '@/utils/sort-transformer.util';
 
 @Injectable()
 export class TeamService {
@@ -106,25 +108,19 @@ export class TeamService {
   }
 
   async findAll(query: TeamSearchDto) {
-    const {
-      page,
-      limit,
-      sortBy,
-      orderBy: sortOrder,
-    } = normalizePaginationAndSort(query);
-
+    const { page, limit, sortBy, orderBy } = normalizePaginationAndSort(query, {
+      sortBy: TeamSortField.CREATED_AT,
+    });
+    const prismaOrderBy = applySortOrder(TEAM_SORT_MAP[sortBy], orderBy);
     const where = buildTeamWhere(query);
     const { skip, take } = buildPagination(page, limit);
-    const orderBy: Prisma.DepartmentOrderByWithRelationInput = {
-      [sortBy]: sortOrder,
-    };
 
     const [items, total] = await Promise.all([
       this.prisma.team.findMany({
         where,
         skip,
         take,
-        orderBy,
+        orderBy: prismaOrderBy,
         select: teamSelect,
       }),
       this.prisma.team.count({ where }),

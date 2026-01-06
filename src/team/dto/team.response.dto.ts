@@ -1,5 +1,6 @@
-import { TeamShortDto, UserShortDto } from '@/common/dto';
-import { DepartmentShortDto } from '@/common/dto';
+import { DepartmentShortDto } from '@/dtos/department-short.dto';
+import { TeamShortDto } from '@/dtos/team-short.dto';
+import { UserShortDto } from '@/dtos/user-short.dto';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { ValidateNested } from 'class-validator';
@@ -10,7 +11,10 @@ export class TeamResponseDto extends TeamShortDto {
   department: DepartmentShortDto;
 
   @Type(() => UserShortDto)
-  @ApiPropertyOptional({ type: () => UserShortDto, nullable: true })
+  @ApiPropertyOptional({
+    nullable: true,
+    type: () => UserShortDto,
+  })
   leader?: UserShortDto | null;
 
   @ApiProperty({ type: () => [UserShortDto] })

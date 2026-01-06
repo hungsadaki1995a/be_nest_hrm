@@ -3,10 +3,37 @@ export const teamSelect = {
   code: true,
   name: true,
   description: true,
-  department: true,
-  leader: true,
-  members: true,
+  isActive: true,
   createdAt: true,
   updatedAt: true,
-  isActive: true,
+  department: {
+    select: {
+      id: true,
+      code: true,
+      name: true,
+      description: true,
+    },
+  },
+  leader: {
+    select: {
+      id: true,
+      employeeId: true,
+      fullName: true,
+      email: true,
+      phoneNumber: true,
+    },
+  },
+  members: {
+    select: {
+      user: {
+        select: {
+          id: true,
+          employeeId: true,
+          fullName: true,
+          email: true,
+          phoneNumber: true,
+        },
+      },
+    },
+  },
 } as const;

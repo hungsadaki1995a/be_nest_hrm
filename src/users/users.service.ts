@@ -1,8 +1,6 @@
 import { AppException } from '@/app.exception';
-import { normalizePaginationAndSort } from '@/common/helpers';
-import { buildPagination, icontains } from '@/common/prisma';
-import { passwordDefault } from '@/consts/auth.const';
-import { ErrorMessage } from '@/consts/message.const';
+import { DEFAULT_USER_PASSWORD } from '@/constants/auth.constant';
+import { ERROR_MESSAGE } from '@/constants/message.constant';
 import { GenderByCode, GenderType } from '@/types/auth.type';
 import { getMessage } from '@/utils/message.util';
 import { HttpStatus, Injectable } from '@nestjs/common';
@@ -18,6 +16,9 @@ import { UserCreateDto } from './dto/create-user.dto';
 import { UserUpdateDto } from './dto/update-user.dto';
 import { UserDetailDto } from './dto/user-detail.dto';
 import { UserSearchDto } from './dto/user-search.dto';
+import { normalizePaginationAndSort } from '@/utils/pagination-sort.util';
+import { buildPagination, icontains } from '@/utils/search.util';
+import { UserSortField } from './consts/user.sort';
 
 @Injectable()
 export class UsersService {
@@ -33,7 +34,7 @@ export class UsersService {
     const randomThreeDegit = Math.floor(100 + Math.random() * 900);
     const employeeId = `${currentYear}${currentMonth}${genderByCode}${randomThreeDegit}`;
     console.log('employeeId', employeeId);
-    const passwordHash = await bcrypt.hash(passwordDefault, 10);
+    const passwordHash = await bcrypt.hash(DEFAULT_USER_PASSWORD, 10);
 
     try {
       return await this.prisma.user.create({
@@ -76,7 +77,7 @@ export class UsersService {
       ) {
         const fields = error.meta?.target as string[];
         throw new AppException(
-          getMessage(ErrorMessage.duplicate, [fields.join(', ')]),
+          getMessage(ERROR_MESSAGE.duplicate, [fields.join(', ')]),
         );
       }
       throw new AppException(
@@ -124,7 +125,9 @@ export class UsersService {
       limit,
       sortBy,
       orderBy: sortOrder,
-    } = normalizePaginationAndSort(searchCondition);
+    } = normalizePaginationAndSort(searchCondition, {
+      sortBy: UserSortField.CREATED_AT,
+    });
 
     const AND: Prisma.UserWhereInput[] = [];
     const query = searchCondition.query;
@@ -217,7 +220,7 @@ export class UsersService {
       ) {
         const fields = error.meta?.target as string[];
         throw new AppException(
-          getMessage(ErrorMessage.duplicate, [fields.join(', ')]),
+          getMessage(ERROR_MESSAGE.duplicate, [fields.join(', ')]),
         );
       }
       throw new AppException(
