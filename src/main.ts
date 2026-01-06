@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './global-exception.filter';
+import { StripUndefinedPipe } from './pipes/strip-undefined.pipe';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -13,6 +14,7 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
       transform: true,
     }),
+    new StripUndefinedPipe(),
   );
 
   app.useGlobalFilters(new GlobalExceptionFilter());
