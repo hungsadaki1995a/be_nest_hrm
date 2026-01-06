@@ -1,16 +1,28 @@
-import { Controller, Get, Param } from '@nestjs/common';
-import { PermissionResponseDto } from './dto/permission-reponse.dto';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+} from '@nestjs/common';
+import { PermissionDto } from './dto/permission.dto';
 import { PermissionService } from './permission.service';
 
 @Controller('permissions')
 export class PermissionController {
-  constructor(private permissionService: PermissionService) {}
+  constructor(private service: PermissionService) {}
 
-  @Get(':employeeId')
-  async getPermissions(
-    @Param('employeeId') employeeId: string,
-  ): Promise<PermissionResponseDto> {
-    const permissions = await this.permissionService.getPermissions(employeeId);
+  @Get('/role/:roleId')
+  async getPermissionsByRole(
+    @Param('roleId', ParseIntPipe) roleId: number,
+  ): Promise<PermissionDto> {
+    const permissions = await this.service.getPermissionsByRole(roleId);
     return permissions;
+  }
+
+  @Post()
+  create(@Body() payload: PermissionDto) {
+    return this.service.updateRolePermission(payload);
   }
 }

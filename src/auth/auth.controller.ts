@@ -1,4 +1,4 @@
-import { PermissionResponseDto } from '@/permission/dto/permission-reponse.dto';
+import { PermissionUserResponseDto } from '@/permission/dto/permission-user-response.dto';
 import { PermissionService } from '@/permission/permission.service';
 import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import {
@@ -42,9 +42,9 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('access-token')
   @Get('permissions')
-  @ApiOkResponse({ type: PermissionResponseDto })
+  @ApiOkResponse({ type: PermissionUserResponseDto })
   getPermissions(@Req() req: { user: { employeeId: string } }) {
-    return this.permissionService.getPermissions(req.user.employeeId);
+    return this.permissionService.getPermissionsByEmployee(req.user.employeeId);
   }
 
   @UseGuards(JwtAuthGuard)

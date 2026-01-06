@@ -1,15 +1,19 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { AppException } from '@/app.exception';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import {
-  PermissionPageCodeEnum,
-  PermissionResponseDto,
-} from './dto/permission-reponse.dto';
+import { PermissionPageCodeList } from './consts/permission.const';
+import { PermissionPageDto } from './dto/permission-page.dto';
+import { PermissionUserResponseDto } from './dto/permission-user-response.dto';
+import { PermissionDto } from './dto/permission.dto';
+import { PermissionPageCodeEnum } from './enum/permission.enum';
 
 @Injectable()
 export class PermissionService {
   constructor(private prisma: PrismaService) {}
 
-  async getPermissions(employeeId: string): Promise<PermissionResponseDto> {
+  async getPermissionsByEmployee(
+    employeeId: string,
+  ): Promise<PermissionUserResponseDto> {
     const employee = await this.prisma.user.findUnique({
       where: { employeeId },
       include: {
@@ -26,10 +30,10 @@ export class PermissionService {
     });
 
     if (!employee) {
-      throw new UnauthorizedException();
+      throw new AppException('User not found');
     }
 
-    let result: PermissionResponseDto = {
+    let result: PermissionUserResponseDto = {
       permissions: {
         [PermissionPageCodeEnum.DASHBOARD]: [],
         [PermissionPageCodeEnum.USER]: [],
@@ -65,18 +69,90 @@ export class PermissionService {
       }
     }
 
-    //TODO: Just for dummy data
-    result = {
-      permissions: {
-        [PermissionPageCodeEnum.DASHBOARD]: ['C', 'R', 'U', 'D'],
-        [PermissionPageCodeEnum.DEPARTMENT]: ['C', 'R', 'U', 'D'],
-        [PermissionPageCodeEnum.ROLE]: ['C', 'R', 'U', 'D'],
-        [PermissionPageCodeEnum.TEAM]: ['C', 'R', 'U', 'D'],
-        [PermissionPageCodeEnum.USER]: ['C', 'R', 'U', 'D'],
-        [PermissionPageCodeEnum.PERMISSION]: ['C', 'R', 'U', 'D'],
-      },
+    return result;
+  }
+
+  async getPermissionsByRole(roleId: number): Promise<PermissionDto> {
+    const rolePermission = await this.prisma.rolePermission.findMany({
+      where: { roleId },
+    });
+
+    const defaultPermission: PermissionPageDto = {
+      canCreate: false,
+      canDelete: false,
+      canRead: false,
+      canUpdate: false,
+    };
+
+    const permissions = {};
+
+    for (const pageCode of PermissionPageCodeList) {
+      permissions[pageCode] = defaultPermission;
+      const pagePermission: PermissionPageDto = rolePermission.find(
+        (item) => (item.page as PermissionPageCodeEnum) === pageCode,
+      ) as PermissionPageDto;
+
+      if (pagePermission) {
+        permissions[pageCode] = {
+          canCreate: pagePermission.canCreate,
+          canRead: pagePermission.canRead,
+          canUpdate: pagePermission.canUpdate,
+          canDelete: pagePermission.canDelete,
+        };
+      }
+    }
+
+    const result: PermissionDto = {
+      roleId: roleId,
+      permissions: permissions as Record<
+        PermissionPageCodeEnum,
+        PermissionPageDto
+      >,
     };
 
     return result;
+  }
+
+  async updateRolePermission(payload: PermissionDto) {
+    const { roleId, permissions } = payload;
+    const role = await this.prisma.role.findUnique({
+      where: { id: roleId },
+    });
+
+    if (!role) {
+      throw new AppException('Role not found');
+    }
+
+    try {
+      const entries = Object.entries(permissions) as [
+        PermissionPageCodeEnum,
+        PermissionPageDto,
+      ][];
+      const actions = entries.map(([page, permission]) =>
+        this.prisma.rolePermission.upsert({
+          where: {
+            roleId_page: {
+              roleId,
+              page: page,
+            },
+          },
+          update: permission,
+          create: {
+            roleId,
+            page: page,
+            ...permission,
+          },
+        }),
+      );
+
+      await this.prisma.$transaction(actions);
+    } catch (error) {
+      throw new AppException(
+        'Unexpected server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    return this.getPermissionsByRole(roleId);
   }
 }
