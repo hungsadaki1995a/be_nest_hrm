@@ -1,4 +1,4 @@
-import { SearchQueryDto } from '@/common/dto/search-query.dto';
+import { SearchQueryDto } from '@/dtos/search-query.dto';
 import { ApiPropertyOptional, OmitType } from '@nestjs/swagger';
 import { IsOptional, IsString } from 'class-validator';
 

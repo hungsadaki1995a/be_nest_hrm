@@ -7,8 +7,8 @@ import { teamSelect } from './constants/team.select';
 import { TeamCreateDto, TeamUpdateDto } from './dto/team.input.dto';
 import { TeamSearchDto } from './dto/team.search.dto';
 import { buildTeamWhere } from './queries/team.search';
-import { buildPagination } from '@/common/prisma';
 import { normalizePaginationAndSort } from '@/utils/pagination-sort.util';
+import { buildPagination } from '@/utils/search.util';
 
 @Injectable()
 export class TeamService {

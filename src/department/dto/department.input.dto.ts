@@ -1,4 +1,4 @@
-import { DepartmentBaseDto } from '@/common/dto';
+import { DepartmentBaseDto } from '@/dtos/department-short.dto';
 import { ApiProperty, OmitType, PartialType } from '@nestjs/swagger';
 import { IsInt, IsOptional } from 'class-validator';
 

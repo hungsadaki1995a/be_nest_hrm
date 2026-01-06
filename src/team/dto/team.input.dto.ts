@@ -1,4 +1,4 @@
-import { TeamBaseDto } from '@/common/dto';
+import { TeamBaseDto } from '@/dtos/team-short.dto';
 import {
   ApiProperty,
   ApiPropertyOptional,

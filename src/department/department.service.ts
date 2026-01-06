@@ -1,5 +1,4 @@
 import { AppException } from '@/app.exception';
-import { buildPagination } from '@/common/prisma';
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -12,6 +11,7 @@ import {
 import { DepartmentSearchDto } from './dto/department.search.dto';
 import { buildDepartmentWhere } from './queries/department.search';
 import { normalizePaginationAndSort } from '@/utils/pagination-sort.util';
+import { buildPagination } from '@/utils/search.util';
 
 @Injectable()
 export class DepartmentService {
