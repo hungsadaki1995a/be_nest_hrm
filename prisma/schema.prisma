@@ -59,7 +59,7 @@ model Role {
   name        String
   description String?
 
-  users UserRole[]
+  users       UserRole[]
   permissions RolePermission[]
 
   createdAt DateTime @default(now())
@@ -135,18 +135,29 @@ model TeamMember {
   @@map("team_members")
 }
 
-
 model RolePermission {
-  roleId      Int
-  page        String  
+  roleId Int
+  page   String
 
-  canCreate   Boolean  @default(false)
-  canRead     Boolean  @default(false)
-  canUpdate   Boolean  @default(false)
-  canDelete   Boolean  @default(false)
+  canCreate Boolean @default(false)
+  canRead   Boolean @default(false)
+  canUpdate Boolean @default(false)
+  canDelete Boolean @default(false)
 
   role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
 
   @@id([roleId, page])
   @@map("role_permission")
+}
+
+model Otp {
+  id        Int      @id @default(autoincrement())
+  email     String
+  otpHash   String
+  attempts  Int      @default(0)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@map("otps")
 }

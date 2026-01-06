@@ -10,6 +10,9 @@ import {
 } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
+import { SendOtpDto } from './dto/send-otp.dto';
+import { VerifyOtpDto } from './dto/verify-otp.dto';
+import { OtpService } from './otp.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import type { Request } from 'express';
 
@@ -19,6 +22,7 @@ export class AuthController {
   constructor(
     private service: AuthService,
     private permissionService: PermissionService,
+    private otpService: OtpService,
   ) {}
 
   @Post('login')
@@ -58,5 +62,15 @@ export class AuthController {
   @ApiCreatedResponse({ description: 'Token refreshed successfully' })
   async refreshToken(@Req() req: Request) {
     return await this.service.refreshToken(req);
+  }
+
+  @Post('send-otp')
+  async sendOtp(@Body() dto: SendOtpDto) {
+    return await this.otpService.sendOtp(dto);
+  }
+
+  @Post('verify-otp')
+  async verifyOtp(@Body() dto: VerifyOtpDto) {
+    return await this.otpService.verifyOtp(dto.email, dto.otp);
   }
 }
