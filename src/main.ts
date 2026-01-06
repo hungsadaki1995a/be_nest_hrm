@@ -1,4 +1,4 @@
-import { ValidationPipe } from '@nestjs/common';
+import { HttpStatus, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppException } from './app.exception';
@@ -16,7 +16,21 @@ async function bootstrap() {
       transform: true,
       exceptionFactory(errors) {
         console.log('VALIDATION ERRORS:', JSON.stringify(errors, null, 2));
-        return new AppException(JSON.stringify(errors));
+
+        const messages = errors
+          .map((err) => {
+            if (err.constraints) {
+              return Object.values(err.constraints);
+            }
+            return [];
+          })
+          .flat();
+
+        return new AppException(
+          messages.join(', '),
+          HttpStatus.BAD_REQUEST,
+          'VALIDATION_ERROR',
+        );
       },
     }),
     new StripUndefinedPipe(),
