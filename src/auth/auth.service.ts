@@ -4,7 +4,6 @@ import {
   JWT_REFRESH_TOKEN_EXPIRE,
 } from '@/common/constants/expired';
 import { ErrorMessage } from '@/consts/message.const';
-import { parseDurationToSeconds } from '@/utils/date.util';
 import { getMessage } from '@/utils/message.util';
 import { HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -127,25 +126,39 @@ export class AuthService {
   }
 
   async logout(req: Request) {
-    const token = req.headers.authorization?.split(' ')[1];
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader?.startsWith('Bearer ')) {
+        throw new UnauthorizedException(
+          'Missing or invalid Authorization header',
+        );
+      }
 
-    if (!token) {
-      throw new UnauthorizedException('No token provided');
+      const token = authHeader.split(' ')[1];
+      if (!token) {
+        throw new UnauthorizedException('No token provided');
+      }
+
+      type LogoutToken = { employeeId?: string };
+      const decodeToken = await this.jwtService.verifyAsync<LogoutToken>(
+        token,
+        {
+          secret: this.configService.get<string>('auth.jwt.accessToken.secret'),
+        },
+      );
+      if (!decodeToken?.employeeId) {
+        throw new UnauthorizedException('Invalid token');
+      }
+
+      await this.deactivateToken(decodeToken.employeeId);
+
+      return {
+        message: 'Logout successful',
+      };
+    } catch (error) {
+      console.error('Logout error:', error);
+      throw new AppException('Logout failed', HttpStatus.UNAUTHORIZED);
     }
-
-    type LogoutToken = { employeeId?: string };
-    const decodeToken = await this.jwtService.verifyAsync<LogoutToken>(token, {
-      secret: this.configService.get<string>('auth.jwt.accessToken.secret'),
-    });
-    if (!decodeToken?.employeeId) {
-      throw new UnauthorizedException('Invalid token');
-    }
-
-    await this.deactivateToken(decodeToken.employeeId);
-
-    return {
-      message: 'Logout successful',
-    };
   }
 
   async refreshToken(req: Request) {
@@ -227,30 +240,21 @@ export class AuthService {
   }
 
   private generateTokens(payload: Record<string, any>) {
-    const accessTokenExp = parseDurationToSeconds(
-      this.configService.get('auth.jwt.accessToken.exp'),
-      JWT_ACCESS_TOKEN_EXPIRE,
-    );
-    const refreshTokenExp = parseDurationToSeconds(
-      this.configService.get('auth.jwt.refreshToken.exp'),
-      JWT_REFRESH_TOKEN_EXPIRE,
-    );
-
     const accessToken = this.jwtService.sign(payload as object, {
       secret: this.configService.get<string>('auth.jwt.accessToken.secret'),
-      expiresIn: accessTokenExp as unknown as number,
+      expiresIn: JWT_ACCESS_TOKEN_EXPIRE,
     });
 
     const refreshToken = this.jwtService.sign(payload as object, {
       secret: this.configService.get<string>('auth.jwt.refreshToken.secret'),
-      expiresIn: refreshTokenExp as unknown as number,
+      expiresIn: JWT_REFRESH_TOKEN_EXPIRE,
     });
 
     return {
       accessToken,
       refreshToken,
-      accessTokenExp,
-      refreshTokenExp,
+      accessTokenExp: JWT_ACCESS_TOKEN_EXPIRE,
+      refreshTokenExp: JWT_REFRESH_TOKEN_EXPIRE,
     };
   }
 

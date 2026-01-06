@@ -4,7 +4,7 @@ export default registerAs('auth', () => ({
   jwt: {
     accessToken: {
       secret: process.env.JWT_ACCESS_TOKEN_SECRET || 'access-secret-fallback',
-      exp: process.env.JWT_ACCESS_TOKEN_EXPIRE || '1d',
+      exp: process.env.JWT_ACCESS_TOKEN_EXPIRE || '3h',
     },
     refreshToken: {
       secret: process.env.JWT_REFRESH_TOKEN_SECRET || 'refresh-secret-fallback',
