@@ -1,9 +1,8 @@
 import {
   DEFAULT_PAGE,
   DEFAULT_PAGE_SIZE,
-  SortField,
-  SortOrder,
-} from '@/common/constants';
+} from '@/constants/pagination.constant';
+import { SortField, SortOrder } from '@/types/sort.type';
 
 export interface NormalizedQuery<TSortField extends string> {
   page: number;

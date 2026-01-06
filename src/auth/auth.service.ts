@@ -2,9 +2,8 @@ import { AppException } from '@/app.exception';
 import {
   JWT_ACCESS_TOKEN_EXPIRE,
   JWT_REFRESH_TOKEN_EXPIRE,
-} from '@/common/constants/expired';
-import { ErrorMessage } from '@/consts/message.const';
-import { parseDurationToSeconds } from '@/utils/date.util';
+} from '@/constants/expired.constant';
+import { ERROR_MESSAGE } from '@/constants/message.constant';
 import { getMessage } from '@/utils/message.util';
 import { HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -25,14 +24,14 @@ export class AuthService {
     //TODO: Validate request param
     if (!employeeId) {
       throw new AppException(
-        getMessage(ErrorMessage.required, ['Employee ID']),
+        getMessage(ERROR_MESSAGE.required, ['Employee ID']),
         HttpStatus.UNAUTHORIZED,
       );
     }
 
     if (!password) {
       throw new AppException(
-        getMessage(ErrorMessage.required, ['Password']),
+        getMessage(ERROR_MESSAGE.required, ['Password']),
         HttpStatus.UNAUTHORIZED,
       );
     }
@@ -163,7 +162,7 @@ export class AuthService {
       );
       if (!secret) {
         throw new AppException(
-          getMessage(ErrorMessage.missRefreshToken),
+          getMessage(ERROR_MESSAGE.missRefreshToken),
           HttpStatus.UNAUTHORIZED,
         );
       }
@@ -179,7 +178,7 @@ export class AuthService {
         (typeof verified?.sub === 'string' && verified.sub);
       if (!employeeId) {
         throw new AppException(
-          getMessage(ErrorMessage.missEmployeeId),
+          getMessage(ERROR_MESSAGE.missEmployeeId),
           HttpStatus.BAD_REQUEST,
         );
       }
@@ -227,30 +226,21 @@ export class AuthService {
   }
 
   private generateTokens(payload: Record<string, any>) {
-    const accessTokenExp = parseDurationToSeconds(
-      this.configService.get('auth.jwt.accessToken.exp'),
-      JWT_ACCESS_TOKEN_EXPIRE,
-    );
-    const refreshTokenExp = parseDurationToSeconds(
-      this.configService.get('auth.jwt.refreshToken.exp'),
-      JWT_REFRESH_TOKEN_EXPIRE,
-    );
-
     const accessToken = this.jwtService.sign(payload as object, {
       secret: this.configService.get<string>('auth.jwt.accessToken.secret'),
-      expiresIn: accessTokenExp as unknown as number,
+      expiresIn: JWT_ACCESS_TOKEN_EXPIRE,
     });
 
     const refreshToken = this.jwtService.sign(payload as object, {
       secret: this.configService.get<string>('auth.jwt.refreshToken.secret'),
-      expiresIn: refreshTokenExp as unknown as number,
+      expiresIn: JWT_REFRESH_TOKEN_EXPIRE,
     });
 
     return {
       accessToken,
       refreshToken,
-      accessTokenExp,
-      refreshTokenExp,
+      accessTokenExp: JWT_ACCESS_TOKEN_EXPIRE,
+      refreshTokenExp: JWT_REFRESH_TOKEN_EXPIRE,
     };
   }
 

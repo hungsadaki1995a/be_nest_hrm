@@ -1,4 +1,4 @@
-export const ErrorMessage = {
+export const ERROR_MESSAGE = {
   duplicate: 'Duplicate value for field: {0}',
   tokenExpired: 'Token expiration time is not configured',
   required: 'Field {0} is required',

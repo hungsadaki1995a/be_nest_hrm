@@ -1,4 +1,4 @@
-import { SortField, SortOrder } from '@/common/constants';
+import { SortField, SortOrder } from '@/types/sort.type';
 
 function isSortOrder(value: string): value is SortOrder {
   return Object.values(SortOrder).includes(value as SortOrder);
