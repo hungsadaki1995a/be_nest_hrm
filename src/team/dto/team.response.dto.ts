@@ -11,7 +11,10 @@ export class TeamResponseDto extends TeamShortDto {
   department: DepartmentShortDto;
 
   @Type(() => UserShortDto)
-  @ApiPropertyOptional({ type: () => UserShortDto, nullable: true })
+  @ApiPropertyOptional({
+    nullable: true,
+    type: () => UserShortDto,
+  })
   leader?: UserShortDto | null;
 
   @ApiProperty({ type: () => [UserShortDto] })

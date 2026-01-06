@@ -12,6 +12,7 @@ import { DepartmentSearchDto } from './dto/department.search.dto';
 import { buildDepartmentWhere } from './queries/department.search';
 import { normalizePaginationAndSort } from '@/utils/pagination-sort.util';
 import { buildPagination } from '@/utils/search.util';
+import { DepartmentSortField } from './constants/department.sort';
 
 @Injectable()
 export class DepartmentService {
@@ -77,7 +78,9 @@ export class DepartmentService {
       limit,
       sortBy,
       orderBy: sortOrder,
-    } = normalizePaginationAndSort(query);
+    } = normalizePaginationAndSort(query, {
+      sortBy: DepartmentSortField.CREATED_AT,
+    });
 
     const where = buildDepartmentWhere(query);
     const { skip, take } = buildPagination(page, limit);
