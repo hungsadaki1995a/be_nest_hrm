@@ -138,23 +138,42 @@ export class AuthService {
       if (!token) {
         throw new UnauthorizedException('No token provided');
       }
+      try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader?.startsWith('Bearer ')) {
+          new AppException(
+            'Missing or invalid Authorization header',
+            HttpStatus.UNAUTHORIZED,
+          );
+        }
 
-      type LogoutToken = { employeeId?: string };
-      const decodeToken = await this.jwtService.verifyAsync<LogoutToken>(
-        token,
-        {
-          secret: this.configService.get<string>('auth.jwt.accessToken.secret'),
-        },
-      );
-      if (!decodeToken?.employeeId) {
-        throw new UnauthorizedException('Invalid token');
+        const token = authHeader?.split(' ')[1];
+        if (!token) {
+          throw new UnauthorizedException('No token provided');
+        }
+
+        type LogoutToken = { employeeId?: string };
+        const decodeToken = await this.jwtService.verifyAsync<LogoutToken>(
+          token,
+          {
+            secret: this.configService.get<string>(
+              'auth.jwt.accessToken.secret',
+            ),
+          },
+        );
+        if (!decodeToken?.employeeId) {
+          throw new UnauthorizedException('Invalid token');
+        }
+
+        await this.deactivateToken(decodeToken.employeeId);
+
+        return {
+          message: 'Logout successful',
+        };
+      } catch (error) {
+        console.error('Logout error:', error);
+        throw new AppException('Logout failed', HttpStatus.UNAUTHORIZED);
       }
-
-      await this.deactivateToken(decodeToken.employeeId);
-
-      return {
-        message: 'Logout successful',
-      };
     } catch (error) {
       console.error('Logout error:', error);
       throw new AppException('Logout failed', HttpStatus.UNAUTHORIZED);
