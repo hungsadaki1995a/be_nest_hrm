@@ -1,5 +1,4 @@
 import { AppException } from '@/app.exception';
-import { normalizePaginationAndSort } from '@/common/helpers';
 import { buildPagination, icontains } from '@/common/prisma';
 import { DEFAULT_USER_PASSWORD } from '@/constants/auth.constant';
 import { ERROR_MESSAGE } from '@/constants/message.constant';
@@ -18,6 +17,7 @@ import { UserCreateDto } from './dto/create-user.dto';
 import { UserUpdateDto } from './dto/update-user.dto';
 import { UserDetailDto } from './dto/user-detail.dto';
 import { UserSearchDto } from './dto/user-search.dto';
+import { normalizePaginationAndSort } from '@/utils/pagination-sort.util';
 
 @Injectable()
 export class UsersService {

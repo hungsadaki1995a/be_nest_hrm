@@ -1,12 +1,15 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import { IsEnum, IsInt, IsOptional, IsString, Min } from 'class-validator';
-import { transformSortBy, transformSortOrder } from '@/common/transformers';
 import { SortField, SortOrder } from '@/types/sort.type';
 import {
   DEFAULT_PAGE,
   DEFAULT_PAGE_SIZE,
 } from '@/constants/pagination.constant';
+import {
+  transformSortBy,
+  transformSortOrder,
+} from '@/utils/sort-transformer.util';
 
 export class SearchQueryDto {
   @ApiPropertyOptional({ description: 'Search all fields' })

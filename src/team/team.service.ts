@@ -6,9 +6,9 @@ import { teamError } from './constants/team.error';
 import { teamSelect } from './constants/team.select';
 import { TeamCreateDto, TeamUpdateDto } from './dto/team.input.dto';
 import { TeamSearchDto } from './dto/team.search.dto';
-import { normalizePaginationAndSort } from '@/common/helpers';
 import { buildTeamWhere } from './queries/team.search';
 import { buildPagination } from '@/common/prisma';
+import { normalizePaginationAndSort } from '@/utils/pagination-sort.util';
 
 @Injectable()
 export class TeamService {
