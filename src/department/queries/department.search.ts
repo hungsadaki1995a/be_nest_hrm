@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client';
-import { icontains } from '@/common/prisma';
 import { DepartmentSearchDto } from '../dto/department.search.dto';
+import { icontains } from '@/utils/search.util';
 
 export function buildDepartmentWhere(
   dto: DepartmentSearchDto,

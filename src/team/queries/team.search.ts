@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client';
-import { icontains } from '@/common/prisma';
 import { TeamSearchDto } from '../dto/team.search.dto';
+import { icontains } from '@/utils/search.util';
 
 export function buildTeamWhere(dto: TeamSearchDto): Prisma.TeamWhereInput {
   const AND: Prisma.TeamWhereInput[] = [];
