@@ -1,4 +1,7 @@
-import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from '@/common/constants';
+import {
+  DEFAULT_PAGE,
+  DEFAULT_PAGE_SIZE,
+} from '@/constants/pagination.constant';
 
 type StringSearch = {
   contains: string;

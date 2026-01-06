@@ -2,8 +2,8 @@ import { AppException } from '@/app.exception';
 import {
   JWT_ACCESS_TOKEN_EXPIRE,
   JWT_REFRESH_TOKEN_EXPIRE,
-} from '@/common/constants/expired';
-import { ErrorMessage } from '@/consts/message.const';
+} from '@/constants/expired.constant';
+import { ERROR_MESSAGE } from '@/constants/message.constant';
 import { parseDurationToSeconds } from '@/utils/date.util';
 import { getMessage } from '@/utils/message.util';
 import { HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
@@ -25,14 +25,14 @@ export class AuthService {
     //TODO: Validate request param
     if (!employeeId) {
       throw new AppException(
-        getMessage(ErrorMessage.required, ['Employee ID']),
+        getMessage(ERROR_MESSAGE.required, ['Employee ID']),
         HttpStatus.UNAUTHORIZED,
       );
     }
 
     if (!password) {
       throw new AppException(
-        getMessage(ErrorMessage.required, ['Password']),
+        getMessage(ERROR_MESSAGE.required, ['Password']),
         HttpStatus.UNAUTHORIZED,
       );
     }
@@ -163,7 +163,7 @@ export class AuthService {
       );
       if (!secret) {
         throw new AppException(
-          getMessage(ErrorMessage.missRefreshToken),
+          getMessage(ERROR_MESSAGE.missRefreshToken),
           HttpStatus.UNAUTHORIZED,
         );
       }
@@ -179,7 +179,7 @@ export class AuthService {
         (typeof verified?.sub === 'string' && verified.sub);
       if (!employeeId) {
         throw new AppException(
-          getMessage(ErrorMessage.missEmployeeId),
+          getMessage(ERROR_MESSAGE.missEmployeeId),
           HttpStatus.BAD_REQUEST,
         );
       }
