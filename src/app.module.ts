@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import auth from './config/auth';
+import mailer from './config/mailer';
 import { DepartmentController } from './department/department.controller';
 import { DepartmentService } from './department/department.service';
 import { PermissionController } from './permission/permission.controller';
@@ -20,7 +21,7 @@ import { UsersService } from './users/users.service';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      load: [auth],
+      load: [auth, mailer],
       isGlobal: true,
     }),
     JwtModule.registerAsync({
