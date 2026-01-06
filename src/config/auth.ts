@@ -1,14 +1,18 @@
+import {
+  TOKEN_EXPIRE_DEFAULT,
+  REFRESH_TOKEN_EXPIRE_DEFAULT,
+} from '@/constants/expired.constant';
 import { registerAs } from '@nestjs/config';
 
 export default registerAs('auth', () => ({
   jwt: {
     accessToken: {
       secret: process.env.JWT_ACCESS_TOKEN_SECRET || 'access-secret-fallback',
-      exp: process.env.JWT_ACCESS_TOKEN_EXPIRE || '1d',
+      exp: TOKEN_EXPIRE_DEFAULT,
     },
     refreshToken: {
       secret: process.env.JWT_REFRESH_TOKEN_SECRET || 'refresh-secret-fallback',
-      exp: process.env.JWT_REFRESH_TOKEN_EXPIRE || '7d',
+      exp: REFRESH_TOKEN_EXPIRE_DEFAULT,
     },
   },
   cookie: {
@@ -17,7 +21,7 @@ export default registerAs('auth', () => ({
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict' as const,
-      maxAge: parseInt(process.env.JWT_REFRESH_TOKEN_EXPIRE || '604800') * 1000,
+      maxAge: REFRESH_TOKEN_EXPIRE_DEFAULT,
     },
   },
 }));
