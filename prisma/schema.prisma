@@ -138,7 +138,7 @@ model TeamMember {
 
 model RolePermission {
   roleId      Int
-  page        String  @unique
+  page        String  
 
   canCreate   Boolean  @default(false)
   canRead     Boolean  @default(false)

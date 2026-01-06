@@ -1,6 +1,7 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { AppException } from './app.exception';
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './global-exception.filter';
 
@@ -12,6 +13,10 @@ async function bootstrap() {
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
+      exceptionFactory(errors) {
+        console.log('VALIDATION ERRORS:', JSON.stringify(errors, null, 2));
+        return new AppException(JSON.stringify(errors));
+      },
     }),
   );
 

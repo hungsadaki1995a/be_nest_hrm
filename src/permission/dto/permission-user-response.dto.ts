@@ -1,15 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { PermissionPageCodeEnum } from '../enum/permission.enum';
 
-export enum PermissionPageCodeEnum {
-  DASHBOARD = 'DASHBOARD',
-  USER = 'USER',
-  ROLE = 'ROLE',
-  PERMISSION = 'PERMISSION',
-  DEPARTMENT = 'DEPARTMENT',
-  TEAM = 'TEAM',
-}
-
-export class PermissionResponseDto {
+export class PermissionUserResponseDto {
   @ApiProperty({
     example: {
       DASHBOARD: ['C', 'R', 'U', 'D'],
