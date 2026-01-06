@@ -29,13 +29,16 @@ import {
   DepartmentUpdateDto,
 } from './dto/department.input.dto';
 import { DepartmentResponseDto } from './dto/department.response.dto';
+import { BaseController } from '@/controllers/base.controller';
 
 @ApiTags('Department')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth('access-token')
 @Controller('departments')
-export class DepartmentController {
-  constructor(private readonly service: DepartmentService) {}
+export class DepartmentController extends BaseController {
+  constructor(private readonly service: DepartmentService) {
+    super();
+  }
 
   @Post()
   @ApiCreatedResponse({ type: DepartmentResponseDto })
