@@ -40,7 +40,7 @@ export class DepartmentController {
   @Post()
   @ApiCreatedResponse({ type: DepartmentResponseDto })
   @ApiOperation({
-    summary: 'Create Department',
+    summary: 'Create department',
     description: 'Create a new department',
   })
   create(@Body() payload: DepartmentCreateDto) {
@@ -66,7 +66,7 @@ export class DepartmentController {
     description: 'Unique department identifier',
   })
   @ApiOperation({
-    summary: 'Get team by ID',
+    summary: 'Get department by ID',
     description: 'Retrieve a single department by its unique identifier',
   })
   findById(@Param('id', ParseIntPipe) id: number) {

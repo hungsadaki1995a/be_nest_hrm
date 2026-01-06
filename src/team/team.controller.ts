@@ -30,7 +30,7 @@ import { TeamSearchDto } from './dto/team.search.dto';
 @ApiTags('Teams')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth('access-token')
-@Controller('v1/teams')
+@Controller('teams')
 export class TeamController {
   constructor(private readonly service: TeamService) {}
 
