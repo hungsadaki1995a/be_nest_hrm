@@ -12,6 +12,7 @@ export class LoginDto {
     minLength: 8,
     minNumbers: 1,
     minSymbols: 1,
+    minUppercase: 0,
   })
   password: string;
 }

@@ -17,6 +17,7 @@ import { TeamController } from './team/team.controller';
 import { TeamService } from './team/team.service';
 import { UsersController } from './users/users.controller';
 import { UsersService } from './users/users.service';
+import { TOKEN_EXPIRE_DEFAULT } from './constants/expired.constant';
 
 @Module({
   imports: [
@@ -31,7 +32,10 @@ import { UsersService } from './users/users.service';
         return {
           secret: config.get<string>('auth.jwt.accessToken.secret', 'fallback'),
           signOptions: {
-            expiresIn: config.get('auth.jwt.accessToken.exp', '1d'),
+            expiresIn: config.get(
+              'auth.jwt.accessToken.exp',
+              TOKEN_EXPIRE_DEFAULT,
+            ),
           },
         } as JwtModuleOptions;
       },

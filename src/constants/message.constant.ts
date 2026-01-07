@@ -10,4 +10,5 @@ export const ERROR_MESSAGE = {
   otpTooManyAttempts: 'Too many attempts',
   otpInvalid: 'Invalid OTP',
   otpValid: 'OTP valid',
+  verifyOTP: 'Verify OTP successful',
 };

@@ -1,4 +1,5 @@
 import { AppException } from '@/app.exception';
+import { ApiResponse } from '@/decorators/api-response.decorator';
 import { JwtAuthGuard } from '@guards/jwt-auth.guard';
 import {
   Body,
@@ -10,12 +11,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiOkResponse,
-  ApiQuery,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { UserCreateDto } from './dto/create-user.dto';
 import { UserUpdateDto } from './dto/update-user.dto';
 import { UserDetailDto } from './dto/user-detail.dto';
@@ -31,7 +27,7 @@ export class UsersController {
   constructor(private service: UsersService) {}
 
   @Get()
-  @ApiOkResponse({ type: [UserListResponseDto] })
+  @ApiResponse(UserListResponseDto, true)
   @ApiQuery({ name: 'query', required: false })
   @ApiQuery({ name: 'page', required: false })
   @ApiQuery({ name: 'limit', required: false })
@@ -42,7 +38,7 @@ export class UsersController {
   }
 
   @Get(':employeeId')
-  @ApiOkResponse({ type: UserDetailDto })
+  @ApiResponse(UserDetailDto)
   async getByEmployeeId(@Param('employeeId') employeeId: string) {
     if (!employeeId) {
       throw new AppException('Employee Id is required');

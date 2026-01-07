@@ -5,6 +5,7 @@ import { GenderByCode, GenderType } from '@/types/auth.type';
 import { getMessage } from '@/utils/message.util';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { AuthService } from '@/auth/auth.service';
 import * as bcrypt from 'bcrypt';
 import dayjs from 'dayjs';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -22,7 +23,10 @@ import { UserSortField } from './consts/user.sort';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly authService: AuthService,
+  ) {}
 
   async create(payload: UserCreateDto) {
     const currentYear = dayjs().format('YY');

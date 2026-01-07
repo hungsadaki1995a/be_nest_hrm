@@ -1,3 +1,4 @@
+import { ApiResponse } from '@/decorators/api-response.decorator';
 import { PermissionUserResponseDto } from '@/permission/dto/permission-user-response.dto';
 import { PermissionService } from '@/permission/permission.service';
 import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
@@ -5,16 +6,16 @@ import {
   ApiBearerAuth,
   ApiCreatedResponse,
   ApiExcludeEndpoint,
-  ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import type { Request } from 'express';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { SendOtpDto } from './dto/send-otp.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
-import { OtpService } from './otp.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import type { Request } from 'express';
+import { OtpService } from './otp.service';
+import { ApiResponseMessage } from '@/decorators/api-response-message.decorator';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -46,7 +47,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('access-token')
   @Get('permissions')
-  @ApiOkResponse({ type: PermissionUserResponseDto })
+  @ApiResponse(PermissionUserResponseDto)
   getPermissions(@Req() req: { user: { employeeId: string } }) {
     return this.permissionService.getPermissionsByEmployee(req.user.employeeId);
   }
@@ -65,12 +66,14 @@ export class AuthController {
   }
 
   @Post('send-otp')
+  @ApiResponseMessage()
   async sendOtp(@Body() dto: SendOtpDto) {
-    return await this.otpService.sendOtp(dto);
+    return this.otpService.sendOtp(dto);
   }
 
   @Post('verify-otp')
+  @ApiResponseMessage()
   async verifyOtp(@Body() dto: VerifyOtpDto) {
-    return await this.otpService.verifyOtp(dto.email, dto.otp);
+    return this.otpService.verifyOtp(dto);
   }
 }
