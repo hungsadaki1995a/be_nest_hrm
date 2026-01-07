@@ -1,4 +1,4 @@
-export const teamSelect = {
+export const TEAM_SELECT_PROPERTIES = {
   id: true,
   code: true,
   name: true,
