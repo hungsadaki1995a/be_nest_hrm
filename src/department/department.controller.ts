@@ -30,6 +30,7 @@ import {
 } from './dtos/department.input.dto';
 import { DepartmentResponseDto } from './dtos/department.response.dto';
 import { BaseController } from '@/controllers/base.controller';
+import { DEPARTMENT_ERROR_MESSAGE } from './constants/department.error.constant';
 
 @ApiTags('Department')
 @UseGuards(JwtAuthGuard)
@@ -97,7 +98,7 @@ export class DepartmentController extends BaseController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiNoContentResponse({ description: 'Department delete successfully' })
+  @ApiNoContentResponse({ description: DEPARTMENT_ERROR_MESSAGE.deleteSuccess })
   @ApiParam({
     name: 'id',
     type: Number,
