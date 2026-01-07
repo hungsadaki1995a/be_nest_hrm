@@ -27,6 +27,7 @@ import { TeamCreateDto, TeamUpdateDto } from './dtos/team.input.dto';
 import { TeamResponseDto } from './dtos/team.response.dto';
 import { TeamSearchDto } from './dtos/team.search.dto';
 import { BaseController } from '@/controllers/base.controller';
+import { TEAM_ERROR_MESSAGE } from './constants/team.error.constant';
 
 @ApiTags('Teams')
 @UseGuards(JwtAuthGuard)
@@ -94,7 +95,7 @@ export class TeamController extends BaseController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiNoContentResponse({ description: 'Team deleted successfully' })
+  @ApiNoContentResponse({ description: TEAM_ERROR_MESSAGE.deleteSuccess })
   @ApiParam({
     name: 'id',
     type: Number,

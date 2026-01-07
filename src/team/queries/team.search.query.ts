@@ -64,7 +64,6 @@ export function buildTeamWhere(dto: TeamSearchDto): Prisma.TeamWhereInput {
         OR: [
           { code: icontains(query) },
           { name: icontains(query) },
-          { description: icontains(query) },
           {
             department: {
               is: {
