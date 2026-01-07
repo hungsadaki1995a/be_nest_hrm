@@ -23,9 +23,9 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { TeamService } from './team.service';
-import { TeamCreateDto, TeamUpdateDto } from './dto/team.input.dto';
-import { TeamResponseDto } from './dto/team.response.dto';
-import { TeamSearchDto } from './dto/team.search.dto';
+import { TeamCreateDto, TeamUpdateDto } from './dtos/team.input.dto';
+import { TeamResponseDto } from './dtos/team.response.dto';
+import { TeamSearchDto } from './dtos/team.search.dto';
 import { BaseController } from '@/controllers/base.controller';
 
 @ApiTags('Teams')

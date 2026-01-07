@@ -1,8 +1,9 @@
+import { SortField } from '@/types/sort.type';
 import { Prisma } from '@prisma/client';
 
 export enum TeamSortField {
-  CREATED_AT = 'createdAt',
-  UPDATED_AT = 'updatedAt',
+  CREATED_AT = SortField.CREATED_AT,
+  UPDATED_AT = SortField.UPDATED_AT,
   CODE = 'code',
   NAME = 'name',
   DEPARTMENT = 'department',
