@@ -9,7 +9,7 @@ import {
 import { transformSortOrder } from '@/utils/sort-transformer.util';
 
 export class SearchQueryDto {
-  @ApiPropertyOptional({ description: 'Search all fields' })
+  @ApiPropertyOptional({ description: 'Search key' })
   @IsString()
   @IsOptional()
   query?: string;

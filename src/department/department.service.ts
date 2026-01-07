@@ -2,37 +2,44 @@ import { AppException } from '@/app.exception';
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { departmentError } from './constants/department.error';
-import { departmentSelect } from './constants/department.select';
+import { DEPARTMENT_ERROR_MESSAGE } from './constants/department.error.constant';
+import { DEPARTMENT_SELECT_PROPERTIES } from './constants/department.select.constant';
 import {
   DepartmentCreateDto,
   DepartmentUpdateDto,
-} from './dto/department.input.dto';
-import { DepartmentSearchDto } from './dto/department.search.dto';
+} from './dtos/department.input.dto';
+import { DepartmentSearchDto } from './dtos/department.search.dto';
 import { buildDepartmentWhere } from './queries/department.search';
 import { normalizePaginationAndSort } from '@/utils/pagination-sort.util';
 import { buildPagination } from '@/utils/search.util';
-import { DepartmentSortField } from './constants/department.sort';
+import {
+  DEPARTMENT_SORT_MAP,
+  DepartmentSortField,
+} from './constants/department.sort.constant';
+import { applySortOrder } from '@/utils/sort-transformer.util';
+import { getMessage } from '@/utils/message.util';
 
 @Injectable()
 export class DepartmentService {
-  // private readonly userCache = new Map<number, { id: number }>();
-
   constructor(private readonly prisma: PrismaService) {}
 
   private handlePrismaUniqueError(e: unknown): never {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
       if (e.code === 'P2002') {
-        throw new AppException(departmentError.codeExisted);
+        throw new AppException(
+          getMessage(DEPARTMENT_ERROR_MESSAGE.codeExisted),
+        );
       }
     }
     throw e;
   }
 
   private async validateHeadUser(headId?: number | null) {
-    if (headId === undefined || headId === null) return;
-
-    // if (this.userCache.has(headId)) return;
+    if (headId === undefined || headId === null) {
+      throw new AppException(
+        getMessage(DEPARTMENT_ERROR_MESSAGE.headIdNotExisted),
+      );
+    }
 
     const user = await this.prisma.user.findUnique({
       where: { id: headId },
@@ -40,10 +47,26 @@ export class DepartmentService {
     });
 
     if (!user) {
-      throw new AppException(departmentError.headNotFound);
+      throw new AppException(getMessage(DEPARTMENT_ERROR_MESSAGE.headNotFound));
     }
+  }
 
-    // this.userCache.set(headId, user);
+  private async validateTeams(teamIds?: number[]) {
+    if (!teamIds || teamIds.length === 0) return;
+
+    const teams = await this.prisma.team.findMany({
+      where: { id: { in: teamIds } },
+      select: { id: true },
+    });
+
+    const foundIds = teams.map((u) => u.id);
+    const missing = teamIds.filter((id) => !foundIds.includes(id));
+
+    if (missing.length > 0) {
+      throw new AppException(
+        getMessage(DEPARTMENT_ERROR_MESSAGE.teamNotFound, [missing.join(', ')]),
+      );
+    }
   }
 
   private async ensureDepartmentExists(id: number): Promise<void> {
@@ -53,19 +76,31 @@ export class DepartmentService {
     });
 
     if (!exists) {
-      throw new AppException(departmentError.notFound);
+      throw new AppException(getMessage(DEPARTMENT_ERROR_MESSAGE.notFound));
     }
   }
 
-  async create(payload: DepartmentCreateDto) {
-    // this.userCache.clear();
+  private mapTeamIdsToCreate(teamIds?: number[]) {
+    if (!teamIds?.length) return undefined;
 
-    await this.validateHeadUser(payload.headId);
+    return {
+      connect: teamIds.map((id) => ({ id })),
+    };
+  }
+
+  async create(payload: DepartmentCreateDto) {
+    const { teamIds, ...departmentData } = payload;
+
+    await this.validateHeadUser(departmentData.headId);
+    await this.validateTeams(teamIds);
 
     try {
       return await this.prisma.department.create({
-        data: payload,
-        select: departmentSelect,
+        data: {
+          ...departmentData,
+          teams: this.mapTeamIdsToCreate(teamIds),
+        },
+        select: DEPARTMENT_SELECT_PROPERTIES,
       });
     } catch (e) {
       this.handlePrismaUniqueError(e);
@@ -73,28 +108,21 @@ export class DepartmentService {
   }
 
   async findAll(query: DepartmentSearchDto) {
-    const {
-      page,
-      limit,
-      sortBy,
-      orderBy: sortOrder,
-    } = normalizePaginationAndSort(query, {
+    const { page, limit, sortBy, orderBy } = normalizePaginationAndSort(query, {
       sortBy: DepartmentSortField.CREATED_AT,
     });
 
+    const prismaOrderBy = applySortOrder(DEPARTMENT_SORT_MAP[sortBy], orderBy);
     const where = buildDepartmentWhere(query);
     const { skip, take } = buildPagination(page, limit);
-    const orderBy: Prisma.DepartmentOrderByWithRelationInput = {
-      [sortBy]: sortOrder,
-    };
 
     const [items, total] = await Promise.all([
       this.prisma.department.findMany({
         where,
         skip,
         take,
-        orderBy,
-        select: departmentSelect,
+        orderBy: prismaOrderBy,
+        select: DEPARTMENT_SELECT_PROPERTIES,
       }),
       this.prisma.department.count({ where }),
     ]);
@@ -113,27 +141,28 @@ export class DepartmentService {
   async findById(id: number) {
     const department = await this.prisma.department.findUnique({
       where: { id },
-      select: departmentSelect,
+      select: DEPARTMENT_SELECT_PROPERTIES,
     });
 
     if (!department) {
-      throw new AppException(departmentError.notFound);
+      throw new AppException(getMessage(DEPARTMENT_ERROR_MESSAGE.notFound));
     }
 
     return department;
   }
 
   async update(id: number, payload: DepartmentUpdateDto) {
-    // this.userCache.clear();
+    const { teamIds, ...departmentData } = payload;
 
     await this.ensureDepartmentExists(id);
-    await this.validateHeadUser(payload.headId);
+    await this.validateHeadUser(departmentData.headId);
+    await this.validateTeams(teamIds);
 
     try {
       return await this.prisma.department.update({
         where: { id },
-        data: payload,
-        select: departmentSelect,
+        data: { ...departmentData, teams: this.mapTeamIdsToCreate(teamIds) },
+        select: DEPARTMENT_SELECT_PROPERTIES,
       });
     } catch (e) {
       this.handlePrismaUniqueError(e);
@@ -141,18 +170,26 @@ export class DepartmentService {
   }
 
   async delete(id: number) {
-    await this.ensureDepartmentExists(id);
-
-    const usedCount = await this.prisma.team.count({
-      where: { departmentId: id },
+    const department = await this.prisma.department.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        _count: {
+          select: { teams: true },
+        },
+      },
     });
 
-    if (usedCount > 0) {
-      throw new AppException(departmentError.teamAssigned);
+    if (!department) {
+      throw new AppException(getMessage(DEPARTMENT_ERROR_MESSAGE.notFound));
+    }
+
+    if (department._count.teams > 0) {
+      throw new AppException(getMessage(DEPARTMENT_ERROR_MESSAGE.cannotDelete));
     }
 
     await this.prisma.department.delete({ where: { id } });
 
-    return { message: departmentError.deleteSuccess };
+    return { message: DEPARTMENT_ERROR_MESSAGE.deleteSuccess };
   }
 }

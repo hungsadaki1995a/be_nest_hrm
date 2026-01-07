@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client';
-import { TeamSearchDto } from '../dto/team.search.dto';
+import { TeamSearchDto } from '../dtos/team.search.dto';
 import { icontains } from '@/utils/search.util';
-import { TeamSearchType } from '../constants/team.search';
+import { TeamSearchType } from '../constants/team.search.constant';
 
 export function buildTeamWhere(dto: TeamSearchDto): Prisma.TeamWhereInput {
   const { query, type } = dto;
@@ -9,14 +9,11 @@ export function buildTeamWhere(dto: TeamSearchDto): Prisma.TeamWhereInput {
   if (!query) return {};
 
   switch (type) {
-    case TeamSearchType.TEAM:
-      return {
-        OR: [
-          { code: icontains(query) },
-          { name: icontains(query) },
-          { description: icontains(query) },
-        ],
-      };
+    case TeamSearchType.CODE:
+      return { code: icontains(query) };
+
+    case TeamSearchType.NAME:
+      return { name: icontains(query) };
 
     case TeamSearchType.LEADER:
       return {
@@ -67,7 +64,6 @@ export function buildTeamWhere(dto: TeamSearchDto): Prisma.TeamWhereInput {
         OR: [
           { code: icontains(query) },
           { name: icontains(query) },
-          { description: icontains(query) },
           {
             department: {
               is: {

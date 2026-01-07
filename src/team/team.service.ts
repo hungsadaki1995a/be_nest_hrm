@@ -2,15 +2,16 @@ import { AppException } from '@/app.exception';
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { teamError } from './constants/team.error';
-import { teamSelect } from './constants/team.select';
-import { TeamCreateDto, TeamUpdateDto } from './dto/team.input.dto';
-import { TeamSearchDto } from './dto/team.search.dto';
-import { buildTeamWhere } from './queries/team.search';
+import { TEAM_ERROR_MESSAGE } from './constants/team.error.constant';
+import { TEAM_SELECT_PROPERTIES } from './constants/team.select.constant';
+import { TeamCreateDto, TeamUpdateDto } from './dtos/team.input.dto';
+import { TeamSearchDto } from './dtos/team.search.dto';
+import { buildTeamWhere } from './queries/team.search.query';
 import { normalizePaginationAndSort } from '@/utils/pagination-sort.util';
 import { buildPagination } from '@/utils/search.util';
-import { TEAM_SORT_MAP, TeamSortField } from './constants/team.sort';
+import { TEAM_SORT_MAP, TeamSortField } from './constants/team.sort.constant';
 import { applySortOrder } from '@/utils/sort-transformer.util';
+import { getMessage } from '@/utils/message.util';
 
 @Injectable()
 export class TeamService {
@@ -19,7 +20,7 @@ export class TeamService {
   private handlePrismaUniqueError(e: unknown): never {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
       if (e.code === 'P2002') {
-        throw new AppException(teamError.codeExisted);
+        throw new AppException(getMessage(TEAM_ERROR_MESSAGE.codeExisted));
       }
     }
     throw e;
@@ -34,7 +35,7 @@ export class TeamService {
     });
 
     if (!department) {
-      throw new AppException(teamError.departmentNotFound);
+      throw new AppException(getMessage(TEAM_ERROR_MESSAGE.departmentNotFound));
     }
   }
 
@@ -47,7 +48,7 @@ export class TeamService {
     });
 
     if (!user) {
-      throw new AppException(teamError.leaderNotFound);
+      throw new AppException(getMessage(TEAM_ERROR_MESSAGE.leaderNotFound));
     }
   }
 
@@ -63,7 +64,9 @@ export class TeamService {
     const missing = memberIds.filter((id) => !foundIds.includes(id));
 
     if (missing.length > 0) {
-      throw new AppException(`${teamError.userNotFound} ${missing.join(', ')}`);
+      throw new AppException(
+        `${TEAM_ERROR_MESSAGE.userNotFound} ${missing.join(', ')}`,
+      );
     }
   }
 
@@ -74,11 +77,21 @@ export class TeamService {
     });
 
     if (!exists) {
-      throw new AppException(teamError.notFound);
+      throw new AppException(getMessage(TEAM_ERROR_MESSAGE.notFound));
     }
   }
 
-  private mapMemberIdsToConnect(memberIds?: number[]) {
+  private mapMemberIdsToCreate(memberIds?: number[]) {
+    if (!memberIds?.length) return undefined;
+
+    return {
+      create: memberIds.map((id) => ({
+        user: { connect: { id } },
+      })),
+    };
+  }
+
+  private mapMemberIdsToUpdate(memberIds?: number[]) {
     if (!memberIds || memberIds.length === 0) return undefined;
 
     return {
@@ -89,18 +102,34 @@ export class TeamService {
     };
   }
 
+  private validateLeaderNotInMembers(
+    leaderId?: number | null,
+    memberIds?: number[] | null,
+  ) {
+    if (!leaderId || !memberIds?.length) return;
+
+    if (memberIds.includes(leaderId)) {
+      throw new AppException(
+        getMessage(TEAM_ERROR_MESSAGE.leaderCannotBeMember),
+      );
+    }
+  }
+
   async create(payload: TeamCreateDto) {
-    await this.validateDepartment(payload.departmentId);
-    await this.validateLeader(payload.leaderId);
-    await this.validateMembers(payload.memberIds);
+    const { memberIds, ...teamData } = payload;
+
+    await this.validateDepartment(teamData.departmentId);
+    await this.validateLeader(teamData.leaderId);
+    await this.validateMembers(memberIds);
+    this.validateLeaderNotInMembers(teamData.leaderId, memberIds);
 
     try {
       return await this.prisma.team.create({
         data: {
-          ...payload,
-          members: this.mapMemberIdsToConnect(payload.memberIds),
+          ...teamData,
+          members: this.mapMemberIdsToCreate(memberIds),
         },
-        select: teamSelect,
+        select: TEAM_SELECT_PROPERTIES,
       });
     } catch (e) {
       this.handlePrismaUniqueError(e);
@@ -121,7 +150,7 @@ export class TeamService {
         skip,
         take,
         orderBy: prismaOrderBy,
-        select: teamSelect,
+        select: TEAM_SELECT_PROPERTIES,
       }),
       this.prisma.team.count({ where }),
     ]);
@@ -140,30 +169,33 @@ export class TeamService {
   async findById(id: number) {
     const team = await this.prisma.team.findUnique({
       where: { id },
-      select: teamSelect,
+      select: TEAM_SELECT_PROPERTIES,
     });
 
     if (!team) {
-      throw new AppException(teamError.notFound);
+      throw new AppException(getMessage(TEAM_ERROR_MESSAGE.notFound));
     }
 
     return team;
   }
 
   async update(id: number, payload: TeamUpdateDto) {
+    const { memberIds, ...teamData } = payload;
+
     await this.ensureTeamExists(id);
-    await this.validateDepartment(payload.departmentId);
-    await this.validateLeader(payload.leaderId);
-    await this.validateMembers(payload.memberIds);
+    await this.validateDepartment(teamData.departmentId);
+    await this.validateLeader(teamData.leaderId);
+    await this.validateMembers(memberIds);
+    this.validateLeaderNotInMembers(teamData.leaderId, memberIds);
 
     try {
       return await this.prisma.team.update({
         where: { id },
         data: {
-          ...payload,
-          members: this.mapMemberIdsToConnect(payload.memberIds),
+          ...teamData,
+          members: this.mapMemberIdsToUpdate(memberIds),
         },
-        select: teamSelect,
+        select: TEAM_SELECT_PROPERTIES,
       });
     } catch (e) {
       this.handlePrismaUniqueError(e);
@@ -171,18 +203,26 @@ export class TeamService {
   }
 
   async delete(id: number) {
-    await this.ensureTeamExists(id);
+    const team = await this.prisma.team.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        _count: {
+          select: { members: true },
+        },
+      },
+    });
 
-    // const usedCount = await this.prisma.user.count({
-    //   where: { teamId: id },
-    // });
+    if (!team) {
+      throw new AppException(getMessage(TEAM_ERROR_MESSAGE.notFound));
+    }
 
-    // if (usedCount > 0) {
-    //   throw new AppException(teamError.cannotDelete);
-    // }
+    if (team._count.members > 0) {
+      throw new AppException(getMessage(TEAM_ERROR_MESSAGE.cannotDelete));
+    }
 
     await this.prisma.team.delete({ where: { id } });
 
-    return { message: teamError.deleteSuccess };
+    return { message: TEAM_ERROR_MESSAGE.deleteSuccess };
   }
 }

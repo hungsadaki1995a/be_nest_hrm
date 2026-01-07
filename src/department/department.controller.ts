@@ -23,12 +23,13 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { DepartmentService } from './department.service';
+import { DepartmentSearchDto } from './dtos/department.search.dto';
 import {
   DepartmentCreateDto,
   DepartmentUpdateDto,
-} from './dto/department.input.dto';
-import { DepartmentResponseDto } from './dto/department.response.dto';
-import { DepartmentSearchDto } from './dto/department.search.dto';
+} from './dtos/department.input.dto';
+import { DepartmentResponseDto } from './dtos/department.response.dto';
+import { DEPARTMENT_ERROR_MESSAGE } from './constants/department.error.constant';
 
 @ApiTags('Department')
 @UseGuards(JwtAuthGuard)
@@ -96,12 +97,12 @@ export class DepartmentController extends BaseController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiNoContentResponse({ description: 'Department deleted successfully' })
+  @ApiNoContentResponse({ description: DEPARTMENT_ERROR_MESSAGE.deleteSuccess })
   @ApiParam({
     name: 'id',
     type: Number,
     example: 1,
-    description: 'Department ID',
+    description: 'Unique department identifier',
   })
   @ApiOperation({
     summary: 'Delete department',

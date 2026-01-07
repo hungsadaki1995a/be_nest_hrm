@@ -22,10 +22,11 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
-import { TeamCreateDto, TeamUpdateDto } from './dto/team.input.dto';
-import { TeamResponseDto } from './dto/team.response.dto';
-import { TeamSearchDto } from './dto/team.search.dto';
 import { TeamService } from './team.service';
+import { TeamCreateDto, TeamUpdateDto } from './dtos/team.input.dto';
+import { TeamResponseDto } from './dtos/team.response.dto';
+import { TeamSearchDto } from './dtos/team.search.dto';
+import { TEAM_ERROR_MESSAGE } from './constants/team.error.constant';
 
 @ApiTags('Teams')
 @UseGuards(JwtAuthGuard)
@@ -93,7 +94,7 @@ export class TeamController extends BaseController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiNoContentResponse({ description: 'Team deleted successfully' })
+  @ApiNoContentResponse({ description: TEAM_ERROR_MESSAGE.deleteSuccess })
   @ApiParam({
     name: 'id',
     type: Number,
