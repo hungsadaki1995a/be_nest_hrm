@@ -218,7 +218,7 @@ export class TeamService {
     }
 
     if (team._count.members > 0) {
-      throw new AppException(getMessage(TEAM_ERROR_MESSAGE.memberExists));
+      throw new AppException(getMessage(TEAM_ERROR_MESSAGE.cannotDelete));
     }
 
     await this.prisma.team.delete({ where: { id } });

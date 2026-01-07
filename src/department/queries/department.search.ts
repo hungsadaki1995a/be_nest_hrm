@@ -1,77 +1,49 @@
 import { Prisma } from '@prisma/client';
-import { DepartmentSearchDto } from '../dto/department.search.dto';
+import { DepartmentSearchDto } from '../dtos/department.search.dto';
 import { icontains } from '@/utils/search.util';
+import { DepartmentSearchType } from '../constants/department.search.constant';
 
 export function buildDepartmentWhere(
   dto: DepartmentSearchDto,
 ): Prisma.DepartmentWhereInput {
-  const AND: Prisma.DepartmentWhereInput[] = [];
+  const { query, type } = dto;
 
-  if (dto.query) {
-    AND.push({
-      OR: [
-        { code: icontains(dto.query) },
-        { name: icontains(dto.query) },
-        { description: icontains(dto.query) },
-        {
-          head: {
-            is: {
-              OR: [
-                { fullName: icontains(dto.query) },
-                { employeeId: icontains(dto.query) },
-                { email: icontains(dto.query) },
-                { phoneNumber: icontains(dto.query) },
-              ],
-            },
-          },
-        },
-        {
-          teams: {
-            some: {
-              OR: [
-                { code: icontains(dto.query) },
-                { name: icontains(dto.query) },
-                { description: icontains(dto.query) },
-              ],
-            },
-          },
-        },
-      ],
-    });
-  } else {
-    if (dto.code) AND.push({ code: icontains(dto.code) });
-    if (dto.name) AND.push({ name: icontains(dto.name) });
-    if (dto.description) AND.push({ description: icontains(dto.description) });
+  if (!query) return {};
 
-    if (dto.head) {
-      AND.push({
+  switch (type) {
+    case DepartmentSearchType.CODE:
+      return { code: icontains(query) };
+
+    case DepartmentSearchType.NAME:
+      return { name: icontains(query) };
+
+    case DepartmentSearchType.HEAD:
+      return {
         head: {
           is: {
             OR: [
-              { fullName: icontains(dto.head) },
-              { employeeId: icontains(dto.head) },
-              { email: icontains(dto.head) },
-              { phoneNumber: icontains(dto.head) },
+              { fullName: icontains(query) },
+              { employeeId: icontains(query) },
+              { email: icontains(query) },
+              { phoneNumber: icontains(query) },
             ],
           },
         },
-      });
-    }
+      };
 
-    if (dto.team) {
-      AND.push({
+    case DepartmentSearchType.TEAM:
+      return {
         teams: {
           some: {
-            OR: [
-              { code: icontains(dto.team) },
-              { name: icontains(dto.team) },
-              { description: icontains(dto.team) },
-            ],
+            OR: [{ code: icontains(query) }, { name: icontains(query) }],
           },
         },
-      });
-    }
-  }
+      };
 
-  return AND.length ? { AND } : {};
+    case DepartmentSearchType.ALL:
+    default:
+      return {
+        OR: [{ code: icontains(query) }, { name: icontains(query) }],
+      };
+  }
 }

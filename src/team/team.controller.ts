@@ -94,7 +94,7 @@ export class TeamController extends BaseController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiNoContentResponse({ description: 'Team deleted successfully' })
+  @ApiNoContentResponse({ description: 'Team delete successfully' })
   @ApiParam({
     name: 'id',
     type: Number,

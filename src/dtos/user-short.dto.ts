@@ -1,4 +1,3 @@
-import { GenderType } from '@/types/auth.type';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class UserShortDto {
@@ -19,24 +18,4 @@ export class UserShortDto {
 
   @ApiProperty({ example: '' })
   avatarUrl?: string;
-
-  @ApiProperty({
-    example: '1990-01-01T00:00:00.000Z',
-    type: String,
-    format: 'date-time',
-  })
-  dateOfBirth: Date;
-
-  @ApiProperty({
-    example: '2025-01-01T10:00:00.000Z',
-    type: String,
-    format: 'date-time',
-  })
-  onBoardAt: Date;
-
-  @ApiProperty({ example: true })
-  isActive: boolean;
-
-  @ApiProperty({ example: 'male' })
-  gender: GenderType;
 }

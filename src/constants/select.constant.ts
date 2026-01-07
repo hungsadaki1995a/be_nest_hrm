@@ -1,3 +1,4 @@
+// Always ensure select === short dto
 export const SELECT_USER_PROPERTIES = {
   id: true,
   employeeId: true,
