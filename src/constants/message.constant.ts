@@ -11,4 +11,6 @@ export const ERROR_MESSAGE = {
   otpInvalid: 'Invalid OTP',
   otpValid: 'OTP valid',
   verifyOTP: 'Verify OTP successful',
+  passwordIncorrect: 'Password incorrect. Try again!',
 };
+export const NO_CONTENT = '';

@@ -52,13 +52,19 @@ export class AuthService {
     });
 
     if (!auth || !auth.isActive) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new AppException(
+        getMessage(ERROR_MESSAGE.passwordIncorrect),
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     const isPasswordValid = await bcrypt.compare(password, auth.password);
 
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new AppException(
+        getMessage(ERROR_MESSAGE.passwordIncorrect),
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     const roles = auth.user.roles.map((r) => r.role.code);
