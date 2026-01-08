@@ -1,3 +1,4 @@
+import { ApiResponse } from '@/decorators/api-response.decorator';
 import { JwtAuthGuard } from '@guards/jwt-auth.guard';
 import {
   BadRequestException,
@@ -12,7 +13,7 @@ import {
   Put,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { RoleDto, RoleResponseDto } from './role.dto';
 import { RoleService } from './role.service';
 
@@ -29,12 +30,13 @@ export class RoleController {
   }
 
   @Get()
-  @ApiOkResponse({ type: [RoleResponseDto] })
+  @ApiResponse(RoleResponseDto, true)
   getAll() {
     return this.service.findAll();
   }
 
   @Get(':id')
+  @ApiResponse(RoleResponseDto)
   async getByEmployeeId(@Param('id', ParseIntPipe) id: number) {
     if (!id) {
       throw new BadRequestException('Role Id is required');

@@ -1,3 +1,5 @@
+import { BaseController } from '@/controllers/base.controller';
+import { ApiResponse } from '@/decorators/api-response.decorator';
 import { JwtAuthGuard } from '@guards/jwt-auth.guard';
 import {
   Body,
@@ -15,9 +17,7 @@ import {
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
-  ApiCreatedResponse,
   ApiNoContentResponse,
-  ApiOkResponse,
   ApiOperation,
   ApiParam,
   ApiTags,
@@ -26,7 +26,6 @@ import { TeamService } from './team.service';
 import { TeamCreateDto, TeamUpdateDto } from './dtos/team.input.dto';
 import { TeamResponseDto } from './dtos/team.response.dto';
 import { TeamSearchDto } from './dtos/team.search.dto';
-import { BaseController } from '@/controllers/base.controller';
 import { TEAM_ERROR_MESSAGE } from './constants/team.error.constant';
 
 @ApiTags('Teams')
@@ -39,7 +38,7 @@ export class TeamController extends BaseController {
   }
 
   @Post()
-  @ApiCreatedResponse({ type: TeamResponseDto })
+  @ApiResponse(TeamResponseDto)
   @ApiOperation({
     summary: 'Create team',
     description: 'Create a new team',
@@ -49,7 +48,7 @@ export class TeamController extends BaseController {
   }
 
   @Get()
-  @ApiOkResponse({ type: [TeamResponseDto] })
+  @ApiResponse(TeamResponseDto, true)
   @ApiOperation({
     summary: 'Get all teams',
     description: 'Retrieve all teams with optional filters',
@@ -59,7 +58,7 @@ export class TeamController extends BaseController {
   }
 
   @Get(':id')
-  @ApiOkResponse({ type: TeamResponseDto })
+  @ApiResponse(TeamResponseDto)
   @ApiParam({
     name: 'id',
     type: Number,
@@ -75,7 +74,7 @@ export class TeamController extends BaseController {
   }
 
   @Patch(':id')
-  @ApiOkResponse({ type: TeamResponseDto })
+  @ApiResponse(TeamResponseDto)
   @ApiParam({
     name: 'id',
     type: Number,

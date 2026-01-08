@@ -5,6 +5,7 @@ import { AppException } from './app.exception';
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './global-exception.filter';
 import { StripUndefinedPipe } from './pipes/strip-undefined.pipe';
+import { ResponseInterceptor } from './utils/response.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -37,6 +38,7 @@ async function bootstrap() {
   );
 
   app.useGlobalFilters(new GlobalExceptionFilter());
+  app.useGlobalInterceptors(new ResponseInterceptor());
 
   const config = new DocumentBuilder()
     .setTitle('HRM API')
@@ -58,4 +60,5 @@ async function bootstrap() {
 
   await app.listen(process.env.PORT ?? 3000);
 }
-bootstrap();
+
+void bootstrap();

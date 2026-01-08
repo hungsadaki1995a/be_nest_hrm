@@ -1,3 +1,5 @@
+import { BaseController } from '@/controllers/base.controller';
+import { ApiResponse } from '@/decorators/api-response.decorator';
 import { JwtAuthGuard } from '@guards/jwt-auth.guard';
 import {
   Body,
@@ -15,9 +17,7 @@ import {
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
-  ApiCreatedResponse,
   ApiNoContentResponse,
-  ApiOkResponse,
   ApiOperation,
   ApiParam,
   ApiTags,
@@ -29,7 +29,6 @@ import {
   DepartmentUpdateDto,
 } from './dtos/department.input.dto';
 import { DepartmentResponseDto } from './dtos/department.response.dto';
-import { BaseController } from '@/controllers/base.controller';
 import { DEPARTMENT_ERROR_MESSAGE } from './constants/department.error.constant';
 
 @ApiTags('Department')
@@ -42,7 +41,7 @@ export class DepartmentController extends BaseController {
   }
 
   @Post()
-  @ApiCreatedResponse({ type: DepartmentResponseDto })
+  @ApiResponse(DepartmentResponseDto)
   @ApiOperation({
     summary: 'Create department',
     description: 'Create a new department',
@@ -52,7 +51,7 @@ export class DepartmentController extends BaseController {
   }
 
   @Get()
-  @ApiOkResponse({ type: [DepartmentResponseDto] })
+  @ApiResponse(DepartmentResponseDto, true)
   @ApiOperation({
     summary: 'Get all departments',
     description: 'Retrieve all departments with optional filters',
@@ -62,7 +61,7 @@ export class DepartmentController extends BaseController {
   }
 
   @Get(':id')
-  @ApiOkResponse({ type: DepartmentResponseDto })
+  @ApiResponse(DepartmentResponseDto)
   @ApiParam({
     name: 'id',
     type: Number,
@@ -78,7 +77,7 @@ export class DepartmentController extends BaseController {
   }
 
   @Patch(':id')
-  @ApiOkResponse({ type: DepartmentResponseDto })
+  @ApiResponse(DepartmentResponseDto)
   @ApiParam({
     name: 'id',
     type: Number,

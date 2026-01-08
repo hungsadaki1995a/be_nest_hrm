@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import auth from './config/auth';
+import mailer from './config/mailer';
 import { DepartmentController } from './department/department.controller';
 import { DepartmentService } from './department/department.service';
 import { PermissionController } from './permission/permission.controller';
@@ -16,11 +17,12 @@ import { TeamController } from './team/team.controller';
 import { TeamService } from './team/team.service';
 import { UsersController } from './users/users.controller';
 import { UsersService } from './users/users.service';
+import { TOKEN_EXPIRE_DEFAULT } from './constants/expired.constant';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      load: [auth],
+      load: [auth, mailer],
       isGlobal: true,
     }),
     JwtModule.registerAsync({
@@ -30,7 +32,10 @@ import { UsersService } from './users/users.service';
         return {
           secret: config.get<string>('auth.jwt.accessToken.secret', 'fallback'),
           signOptions: {
-            expiresIn: config.get('auth.jwt.accessToken.exp', '1d'),
+            expiresIn: config.get(
+              'auth.jwt.accessToken.exp',
+              TOKEN_EXPIRE_DEFAULT,
+            ),
           },
         } as JwtModuleOptions;
       },

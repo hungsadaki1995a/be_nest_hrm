@@ -288,4 +288,106 @@ export class AuthService {
       },
     });
   }
+
+  async resetPassword(email: string, newPassword: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+      include: { auth: true },
+    });
+
+    if (!user) {
+      throw new AppException(
+        'User or auth record not found',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+
+    // Update the auth record for this user
+    await this.prisma.auth.update({
+      where: { userId: user.id },
+      data: {
+        password: passwordHash,
+        updatedAt: new Date(),
+      },
+    });
+
+    return true;
+  }
+
+  async changePassword(
+    userId: number,
+    oldPassword: string,
+    newPassword: string,
+    confirmPassword: string,
+  ) {
+    this.validateNewPassword(newPassword, confirmPassword);
+
+    if (!oldPassword || !newPassword || !confirmPassword) {
+      throw new AppException(
+        'All password fields (oldPassword, newPassword, confirmPassword) are required',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    if (oldPassword === newPassword) {
+      throw new AppException(
+        'New password must be different from old password',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const auth = await this.prisma.auth.findUnique({
+      where: { userId },
+    });
+
+    if (!auth) {
+      throw new AppException('Auth record not found', HttpStatus.BAD_REQUEST);
+    }
+
+    const isOldPasswordValid = await bcrypt.compare(oldPassword, auth.password);
+    if (!isOldPasswordValid) {
+      throw new AppException(
+        'Old password is incorrect',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+
+    await this.prisma.auth.update({
+      where: { userId },
+      data: {
+        password: passwordHash,
+        updatedAt: new Date(),
+      },
+    });
+
+    return true;
+  }
+
+  validateNewPassword(password?: string, confirmPassword?: string) {
+    if (!password) {
+      throw new AppException('Password is required', HttpStatus.BAD_REQUEST);
+    }
+    if (!confirmPassword) {
+      throw new AppException(
+        'Confirm password is required',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    if (password !== confirmPassword) {
+      throw new AppException(
+        'Password and confirmPassword do not match',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    if (password.length < 8) {
+      throw new AppException(
+        'Password must be at least 8 characters',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
 }
