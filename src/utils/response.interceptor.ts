@@ -22,13 +22,19 @@ export class ResponseInterceptor<
     const response: { statusCode?: number } | undefined = http.getResponse?.();
     return next.handle().pipe(
       map((data: T) => {
+        if (data instanceof ResponseModel) {
+          return data;
+        }
+
         const status =
           response && typeof response.statusCode === 'number'
             ? response.statusCode
             : HttpStatus.OK;
+
         if (status === (HttpStatus.OK as number)) {
           return new ResponseModel<T, D>(HttpStatus.OK, 'OK', data);
         }
+
         return data;
       }),
     );
