@@ -27,7 +27,7 @@ export class ResponseInterceptor<
             ? response.statusCode
             : HttpStatus.OK;
         if (status === (HttpStatus.OK as number)) {
-          return new ResponseModel<T, D>(HttpStatus.OK, 'OK', data, null);
+          return new ResponseModel<T, D>(HttpStatus.OK, 'OK', data);
         }
         return data;
       }),

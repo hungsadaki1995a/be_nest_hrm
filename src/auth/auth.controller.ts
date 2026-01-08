@@ -66,13 +66,13 @@ export class AuthController {
   }
 
   @Post('send-otp')
-  @ApiResponseMessage()
+  @ApiResponseMessage({ message: 'OTP sent successful' })
   async sendOtp(@Body() dto: SendOtpDto) {
     return this.otpService.sendOtp(dto);
   }
 
   @Post('verify-otp')
-  @ApiResponseMessage()
+  @ApiResponseMessage({ message: 'Verify OTP successful' })
   async verifyOtp(@Body() dto: VerifyOtpDto) {
     return this.otpService.verifyOtp(dto);
   }

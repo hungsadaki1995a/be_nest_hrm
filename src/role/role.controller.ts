@@ -9,12 +9,20 @@ import {
   NotFoundException,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
-  Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RoleDto, RoleResponseDto } from './role.dto';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+} from '@nestjs/swagger';
+import { RoleCreateDto, UpdateRoleDto } from './dtos/role.input.dto';
+import { RoleResponseDto } from './dtos/role.response.dto';
+import { RoleSearchDto } from './dtos/role.search.dto';
 import { RoleService } from './role.service';
 
 @ApiTags('Role')
@@ -25,17 +33,20 @@ export class RoleController {
   constructor(private service: RoleService) {}
 
   @Post()
-  create(@Body() payload: RoleDto) {
+  @ApiOperation({ summary: 'Create new role' })
+  @ApiResponse(RoleCreateDto)
+  create(@Body() payload: RoleCreateDto) {
     return this.service.create(payload);
   }
 
   @Get()
   @ApiResponse(RoleResponseDto, true)
-  getAll() {
-    return this.service.findAll();
+  getAll(@Query() query: RoleSearchDto) {
+    return this.service.findAll(query);
   }
 
   @Get(':id')
+  @ApiParam({ name: 'id', example: 1 })
   @ApiResponse(RoleResponseDto)
   async getByEmployeeId(@Param('id', ParseIntPipe) id: number) {
     if (!id) {
@@ -56,8 +67,11 @@ export class RoleController {
     return this.service.delete(id);
   }
 
-  @Put(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() payload: RoleDto) {
+  @Patch(':id')
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() payload: UpdateRoleDto,
+  ) {
     return this.service.update(id, payload);
   }
 }
