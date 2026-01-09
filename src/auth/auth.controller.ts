@@ -75,12 +75,14 @@ export class AuthController extends BaseController {
   }
 
   @IsPublic()
+  @IsPublic()
   @Post('send-otp')
   @ApiResponseMessage({ message: 'OTP sent successful' })
   async sendOtp(@Body() dto: SendOtpDto) {
     return this.otpService.sendOtp(dto);
   }
 
+  @IsPublic()
   @IsPublic()
   @Post('verify-otp')
   @ApiResponseMessage({ message: 'Verify OTP successful' })

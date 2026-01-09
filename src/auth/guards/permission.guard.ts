@@ -77,7 +77,6 @@ export class PermissionGuard implements CanActivate {
             users: {
               some: {
                 userId,
-                user: { isActive: true },
               },
             },
             isActive: true,

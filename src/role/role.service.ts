@@ -169,11 +169,11 @@ export class RoleService {
     const [user, role] = await Promise.all([
       this.prisma.user.findUnique({
         where: { id: userId },
-        select: { id: true, isActive: true }
+        select: { id: true, }
       }),
       this.prisma.role.findUnique({
         where: { id: roleId },
-        select: { id: true, isActive: true }
+        select: { id: true, }
       }),
     ]);
 
@@ -184,12 +184,6 @@ export class RoleService {
       );
     }
 
-    if (!user.isActive) {
-      throw new AppException(
-        ROLE_MESSAGE.cannotAssign,
-        HttpStatus.BAD_REQUEST,
-      );
-    }
 
     if (!role) {
       throw new AppException(
@@ -198,12 +192,6 @@ export class RoleService {
       );
     }
 
-    if (!role.isActive) {
-      throw new AppException(
-        ROLE_MESSAGE.inactiveRole,
-        HttpStatus.BAD_REQUEST,
-      );
-    }
 
     const existingRole = await this.prisma.userRole.findUnique({
       where: { userId_roleId: { userId, roleId } },
@@ -264,8 +252,8 @@ export class RoleService {
     const userRole = await this.prisma.userRole.findUnique({
       where: { userId_roleId: { userId, roleId } },
       include: {
-        user: { select: { id: true, isActive: true } },
-        role: { select: { id: true, isActive: true } },
+        user: { select: { id: true, } },
+        role: { select: { id: true, } },
       }
     });
 
@@ -292,7 +280,7 @@ export class RoleService {
     roleId: number,
     permissions: UpdateRolePermissionDto[],
   ) {
-    await this.findById(roleId); 
+    await this.findById(roleId);
 
     await this.prisma.$transaction(async (tx) => {
       await Promise.all(
