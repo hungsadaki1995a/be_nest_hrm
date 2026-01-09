@@ -9,7 +9,6 @@ import { ArrayUnique, IsArray, IsInt, IsOptional } from 'class-validator';
 
 export class TeamCreateDto extends TeamBaseDto {
   @ApiProperty({
-    required: true,
     example: 1,
     description: 'Department ID this team belongs to',
   })

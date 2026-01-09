@@ -28,7 +28,7 @@ import { TeamResponseDto } from './dtos/team.response.dto';
 import { TeamSearchDto } from './dtos/team.search.dto';
 import { TEAM_ERROR_MESSAGE } from './constants/team.error.constant';
 
-@ApiTags('Teams')
+@ApiTags('Team')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth('access-token')
 @Controller('teams')

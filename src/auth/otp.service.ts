@@ -15,8 +15,8 @@ import { Otp } from '@prisma/client';
 import { createHmac, randomInt } from 'crypto';
 import * as nodemailer from 'nodemailer';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { SendOtpDto } from './dto/send-otp.dto';
-import { VerifyOtpDto } from './dto/verify-otp.dto';
+import { SendOtpDto } from './dtos/send-otp.dto';
+import { VerifyOtpDto } from './dtos/verify-otp.dto';
 import { ResponseModel } from '@/utils/response';
 
 @Injectable()
@@ -154,7 +154,7 @@ export class OtpService {
   async verifyOtp(body: VerifyOtpDto) {
     const { email, otp, password, confirmPassword } = body;
 
-    this.authService.validateNewPassword(password, confirmPassword);
+    this.authService.validatePassword(password, confirmPassword);
 
     await this.prisma.$transaction(async (tx) => {
       // Lock record with FOR UPDATE

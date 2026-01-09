@@ -4,22 +4,37 @@ import * as bcrypt from 'bcrypt';
 const prisma = new PrismaClient();
 
 async function main() {
+  const role = await prisma.role.create({
+    data: {
+      code: 'ADMIN',
+      name: 'Administrator',
+      permissions: {
+        create: {
+          page: 'ROLE',
+          canRead: true,
+          canCreate: true,
+          canUpdate: true,
+          canDelete: true,
+        },
+      },
+    },
+  });
+
   const passwordHash = await bcrypt.hash('shinhan@1', 10);
 
   await prisma.user.create({
     data: {
-      employeeId: '23053239',
-      fullName: 'Pham Van Hao',
-      address: 'The Mett, P. An Khanh, TP. HCM',
+      employeeId: '88888888',
+      fullName: 'Nguyen Van A',
       email: 'test@gmail.com',
-      gender: 'male',
-      phoneNumber: '0123456789',
+      phoneNumber: '0901234567',
       auth: {
         create: {
           password: passwordHash,
-          isActive: true,
-          employeeId: '23053239',
         },
+      },
+      roles: {
+        create: { roleId: role.id },
       },
     },
   });

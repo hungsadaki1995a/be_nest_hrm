@@ -13,13 +13,13 @@ import {
   userDetailSelectFields,
   userListSelectFields,
 } from './consts/user-select-fields.dto';
-import { UserCreateDto } from './dto/create-user.dto';
 import { UserUpdateDto } from './dto/update-user.dto';
 import { UserDetailDto } from './dto/user-detail.dto';
 import { UserSearchDto } from './dto/user-search.dto';
 import { normalizePaginationAndSort } from '@/utils/pagination-sort.util';
 import { buildPagination, icontains } from '@/utils/search.util';
 import { UserSortField } from './consts/user.sort';
+import { UserCreateDto } from './dtos/user.input.dto';
 
 @Injectable()
 export class UsersService {
@@ -45,12 +45,8 @@ export class UsersService {
         data: {
           employeeId: employeeId,
           fullName: payload.fullName,
-          address: payload.address,
           email: payload.email,
-          gender: payload.gender,
           phoneNumber: payload.phoneNumber,
-          onBoardAt: payload.onBoardAt,
-          dateOfBirth: payload.dateOfBirth,
           roles: {
             create: payload.roleIds.map((roleId) => ({
               role: {
@@ -63,8 +59,6 @@ export class UsersService {
           auth: {
             create: {
               password: passwordHash,
-              isActive: true,
-              employeeId: employeeId,
             },
           },
           ...(payload.teamId && {

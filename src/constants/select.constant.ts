@@ -21,3 +21,9 @@ export const SELECT_TEAM_PROPERTIES = {
   name: true,
   description: true,
 };
+
+export const ROLE_SELECT = {
+  id: true,
+  code: true,
+  name: true,
+};
