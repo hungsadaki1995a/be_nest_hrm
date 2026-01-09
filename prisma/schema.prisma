@@ -176,6 +176,7 @@ model UserRole {
   role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
 
   @@id([userId, roleId])
+  @@index([userId])
   @@map("user_roles")
 }
 
@@ -230,12 +231,12 @@ model TeamMember {
 }
 
 enum Page {
-  ROLE
-  PERMISSION
-  USER
   DASHBOARD
+  USER
   DEPARTMENT
   TEAM
+  ROLE
+  PERMISSION
 }
 
 model RolePermission {
@@ -250,7 +251,8 @@ model RolePermission {
   role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
 
   @@id([roleId, page])
-  @@map("role_permissions")
+  @@index([roleId])
+  @@map("role_permission")
 }
 
 enum OtpPurpose {
