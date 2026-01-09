@@ -18,6 +18,7 @@ import { OtpService } from './otp.service';
 import { ApiResponseMessage } from '@/decorators/api-response-message.decorator';
 import { BaseController } from '@/controllers/base.controller';
 import { LoginResponseDto } from './dtos/auth.response.dto';
+import { IsPublic } from '@/decorators/is-public.decorator';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -73,12 +74,14 @@ export class AuthController extends BaseController {
     return await this.service.refreshToken(req);
   }
 
+  @IsPublic()
   @Post('send-otp')
   @ApiResponseMessage({ message: 'OTP sent successful' })
   async sendOtp(@Body() dto: SendOtpDto) {
     return this.otpService.sendOtp(dto);
   }
 
+  @IsPublic()
   @Post('verify-otp')
   @ApiResponseMessage({ message: 'Verify OTP successful' })
   async verifyOtp(@Body() dto: VerifyOtpDto) {

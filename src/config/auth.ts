@@ -1,7 +1,7 @@
 import {
   TOKEN_EXPIRE_DEFAULT,
   REFRESH_TOKEN_EXPIRE_DEFAULT,
-} from '@/constants/expired.constant';
+} from '@/constants/auth.constant';
 import { registerAs } from '@nestjs/config';
 
 export default registerAs('auth', () => ({

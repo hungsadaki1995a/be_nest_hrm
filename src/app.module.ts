@@ -17,7 +17,8 @@ import { TeamController } from './team/team.controller';
 import { TeamService } from './team/team.service';
 import { UsersController } from './users/users.controller';
 import { UsersService } from './users/users.service';
-import { TOKEN_EXPIRE_DEFAULT } from './constants/expired.constant';
+import { TOKEN_EXPIRE_DEFAULT } from './constants/auth.constant';
+import { CacheModule } from './cache/cache.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { TOKEN_EXPIRE_DEFAULT } from './constants/expired.constant';
     }),
     PrismaModule,
     AuthModule,
+    CacheModule,
   ],
   controllers: [
     AppController,
