@@ -1,5 +1,5 @@
 import { UserBaseDto } from '@/dtos/user-short.dto';
-import { GenderType } from '@/types/auth.type';
+import { GenderEnum } from '@/types/auth.type';
 import { ApiProperty } from '@nestjs/swagger';
 import {
   ArrayNotEmpty,
@@ -14,10 +14,14 @@ import {
 } from 'class-validator';
 
 export class UserCreateDto extends UserBaseDto {
-  @ApiProperty({ example: 'male' })
-  @IsEnum(GenderType)
+  @ApiProperty({
+    example: 'MALE',
+    enum: GenderEnum,
+    enumName: 'GenderEnum',
+  })
+  @IsEnum(GenderEnum)
   @IsNotEmpty()
-  gender: GenderType;
+  gender: GenderEnum;
 
   @ApiProperty({ example: '88888888' })
   @IsString()

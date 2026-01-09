@@ -1,6 +1,7 @@
-export enum GenderType {
-  MALE = 'male',
-  FEMALE = 'female',
+export enum GenderEnum {
+  MALE = 'MALE',
+  FEMALE = 'FEMALE',
+  OTHER = 'OTHER',
 }
 export enum GenderByCode {
   MALE = 3,

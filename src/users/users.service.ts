@@ -1,7 +1,7 @@
 import { AppException } from '@/app.exception';
 import { DEFAULT_USER_PASSWORD } from '@/constants/auth.constant';
 import { ERROR_MESSAGE } from '@/constants/message.constant';
-import { GenderByCode, GenderType } from '@/types/auth.type';
+import { GenderByCode, GenderEnum } from '@/types/auth.type';
 import { getMessage } from '@/utils/message.util';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
@@ -18,7 +18,7 @@ import { UserDetailDto } from './dto/user-detail.dto';
 import { UserSearchDto } from './dto/user-search.dto';
 import { normalizePaginationAndSort } from '@/utils/pagination-sort.util';
 import { buildPagination, icontains } from '@/utils/search.util';
-import { UserSortField } from './consts/user.sort';
+import { UserSortFieldEnum } from './consts/user.sort';
 import { UserCreateDto } from './dtos/user.input.dto';
 
 @Injectable()
@@ -32,7 +32,7 @@ export class UsersService {
     const currentYear = dayjs().format('YY');
     const currentMonth = dayjs().format('MM');
     const genderByCode =
-      payload.gender == GenderType.MALE
+      payload.gender == GenderEnum.MALE
         ? GenderByCode.MALE
         : GenderByCode.FEMALE;
     const randomThreeDegit = Math.floor(100 + Math.random() * 900);
@@ -101,7 +101,7 @@ export class UsersService {
         dateOfBirth: employee.dateOfBirth || undefined,
         email: employee.email || '',
         fullName: employee.fullName || '',
-        gender: employee.gender as GenderType,
+        gender: employee.gender as GenderEnum,
         isActive: employee.isActive,
         phoneNumber: employee.phoneNumber || '',
         avatarUrl: employee.avatarUrl || '',
@@ -124,7 +124,7 @@ export class UsersService {
       sortBy,
       orderBy: sortOrder,
     } = normalizePaginationAndSort(searchCondition, {
-      sortBy: UserSortField.CREATED_AT,
+      sortBy: UserSortFieldEnum.CREATED_AT,
     });
 
     const AND: Prisma.UserWhereInput[] = [];

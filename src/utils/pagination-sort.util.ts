@@ -2,13 +2,13 @@ import {
   DEFAULT_PAGE,
   DEFAULT_PAGE_SIZE,
 } from '@/constants/pagination.constant';
-import { SortOrder } from '@/types/sort.type';
+import { SortOrderEnum } from '@/types/sort.type';
 
 export interface NormalizedQuery<TSortField extends string> {
   page: number;
   limit: number;
   sortBy: TSortField;
-  orderBy: SortOrder;
+  orderBy: SortOrderEnum;
 }
 
 export function normalizePaginationAndSort<TSortField extends string>(
@@ -16,11 +16,11 @@ export function normalizePaginationAndSort<TSortField extends string>(
     page?: number;
     limit?: number;
     sortBy?: TSortField;
-    orderBy?: SortOrder;
+    orderBy?: SortOrderEnum;
   },
   defaults: {
     sortBy: TSortField;
-    orderBy?: SortOrder;
+    orderBy?: SortOrderEnum;
   },
 ) {
   return {
@@ -28,6 +28,6 @@ export function normalizePaginationAndSort<TSortField extends string>(
     limit: query.limit ?? DEFAULT_PAGE_SIZE,
     sortBy:
       query.sortBy ?? defaults?.sortBy ?? (undefined as unknown as TSortField),
-    orderBy: query.orderBy ?? defaults?.orderBy ?? SortOrder.DESC,
+    orderBy: query.orderBy ?? defaults?.orderBy ?? SortOrderEnum.DESC,
   };
 }

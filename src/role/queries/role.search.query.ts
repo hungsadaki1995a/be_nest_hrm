@@ -1,6 +1,6 @@
 import { icontains } from '@/utils/search.util';
 import { Prisma } from '@prisma/client';
-import { RoleSearchType } from '../constants/role.search.constant';
+import { RoleSearchTypeEnum } from '../constants/role.search.constant';
 import { RoleSearchDto } from '../dtos/role.search.dto';
 
 export function buildRoleWhere(dto: RoleSearchDto): Prisma.RoleWhereInput {
@@ -9,13 +9,13 @@ export function buildRoleWhere(dto: RoleSearchDto): Prisma.RoleWhereInput {
   if (!query) return {};
 
   switch (type) {
-    case RoleSearchType.CODE:
+    case RoleSearchTypeEnum.CODE:
       return { code: icontains(query) };
 
-    case RoleSearchType.NAME:
+    case RoleSearchTypeEnum.NAME:
       return { name: icontains(query) };
 
-    case RoleSearchType.ALL:
+    case RoleSearchTypeEnum.ALL:
     default:
       return {
         OR: [{ code: icontains(query) }, { name: icontains(query) }],

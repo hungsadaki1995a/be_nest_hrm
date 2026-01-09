@@ -14,7 +14,7 @@ import { normalizePaginationAndSort } from '@/utils/pagination-sort.util';
 import { buildPagination } from '@/utils/search.util';
 import {
   DEPARTMENT_SORT_MAP,
-  DepartmentSortField,
+  DepartmentSortFieldEnum,
 } from './constants/department.sort.constant';
 import { applySortOrder } from '@/utils/sort-transformer.util';
 import { getMessage } from '@/utils/message.util';
@@ -109,7 +109,7 @@ export class DepartmentService {
 
   async findAll(query: DepartmentSearchDto) {
     const { page, limit, sortBy, orderBy } = normalizePaginationAndSort(query, {
-      sortBy: DepartmentSortField.CREATED_AT,
+      sortBy: DepartmentSortFieldEnum.CREATED_AT,
     });
 
     const prismaOrderBy = applySortOrder(DEPARTMENT_SORT_MAP[sortBy], orderBy);

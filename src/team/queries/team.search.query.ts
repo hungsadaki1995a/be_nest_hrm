@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client';
 import { TeamSearchDto } from '../dtos/team.search.dto';
 import { icontains } from '@/utils/search.util';
-import { TeamSearchType } from '../constants/team.search.constant';
+import { TeamSearchTypeEnum } from '../constants/team.search.constant';
 
 export function buildTeamWhere(dto: TeamSearchDto): Prisma.TeamWhereInput {
   const { query, type } = dto;
@@ -9,13 +9,13 @@ export function buildTeamWhere(dto: TeamSearchDto): Prisma.TeamWhereInput {
   if (!query) return {};
 
   switch (type) {
-    case TeamSearchType.CODE:
+    case TeamSearchTypeEnum.CODE:
       return { code: icontains(query) };
 
-    case TeamSearchType.NAME:
+    case TeamSearchTypeEnum.NAME:
       return { name: icontains(query) };
 
-    case TeamSearchType.LEADER:
+    case TeamSearchTypeEnum.LEADER:
       return {
         leader: {
           is: {
@@ -29,7 +29,7 @@ export function buildTeamWhere(dto: TeamSearchDto): Prisma.TeamWhereInput {
         },
       };
 
-    case TeamSearchType.MEMBER:
+    case TeamSearchTypeEnum.MEMBER:
       return {
         members: {
           some: {
@@ -45,7 +45,7 @@ export function buildTeamWhere(dto: TeamSearchDto): Prisma.TeamWhereInput {
         },
       };
 
-    case TeamSearchType.DEPARTMENT:
+    case TeamSearchTypeEnum.DEPARTMENT:
       return {
         department: {
           is: {
@@ -58,7 +58,7 @@ export function buildTeamWhere(dto: TeamSearchDto): Prisma.TeamWhereInput {
         },
       };
 
-    case TeamSearchType.ALL:
+    case TeamSearchTypeEnum.ALL:
     default:
       return {
         OR: [

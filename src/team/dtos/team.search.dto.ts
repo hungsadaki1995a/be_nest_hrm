@@ -1,28 +1,30 @@
 import { SearchQueryDto } from '@/dtos/search-query.dto';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsOptional } from 'class-validator';
-import { TeamSearchType } from '../constants/team.search.constant';
-import { TeamSortField } from '../constants/team.sort.constant';
+import { TeamSearchTypeEnum } from '../constants/team.search.constant';
+import { TeamSortFieldEnum } from '../constants/team.sort.constant';
 import { Transform } from 'class-transformer';
 import { transformSortBy } from '@/utils/sort-transformer.util';
 
 export class TeamSearchDto extends SearchQueryDto {
   @ApiPropertyOptional({
     description: 'Sort by field',
-    enum: TeamSortField,
-    default: TeamSortField.CREATED_AT,
+    enum: TeamSortFieldEnum,
+    enumName: 'TeamSortFieldEnum',
+    default: TeamSortFieldEnum.CREATED_AT,
   })
-  @Transform(transformSortBy(TeamSortField))
-  @IsEnum(TeamSortField)
+  @Transform(transformSortBy(TeamSortFieldEnum))
+  @IsEnum(TeamSortFieldEnum)
   @IsOptional()
-  sortBy?: TeamSortField = TeamSortField.CREATED_AT;
+  sortBy?: TeamSortFieldEnum = TeamSortFieldEnum.CREATED_AT;
 
   @ApiPropertyOptional({
     description: 'Type of search',
-    enum: TeamSearchType,
-    default: TeamSearchType.ALL,
+    enum: TeamSearchTypeEnum,
+    enumName: 'TeamSearchTypeEnum',
+    default: TeamSearchTypeEnum.ALL,
   })
-  @IsEnum(TeamSearchType)
+  @IsEnum(TeamSearchTypeEnum)
   @IsOptional()
-  type?: TeamSearchType = TeamSearchType.ALL;
+  type?: TeamSearchTypeEnum = TeamSearchTypeEnum.ALL;
 }

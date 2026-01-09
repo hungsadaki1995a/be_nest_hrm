@@ -1,4 +1,4 @@
-export enum TeamSearchType {
+export enum TeamSearchTypeEnum {
   ALL = 'all',
   CODE = 'code',
   NAME = 'name',

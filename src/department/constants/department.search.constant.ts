@@ -1,4 +1,4 @@
-export enum DepartmentSearchType {
+export enum DepartmentSearchTypeEnum {
   ALL = 'all',
   CODE = 'code',
   NAME = 'name',

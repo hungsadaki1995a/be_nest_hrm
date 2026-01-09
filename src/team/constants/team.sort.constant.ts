@@ -1,9 +1,9 @@
-import { SortField } from '@/types/sort.type';
+import { SortFieldEnum } from '@/types/sort.type';
 import { Prisma } from '@prisma/client';
 
-export enum TeamSortField {
-  CREATED_AT = SortField.CREATED_AT,
-  UPDATED_AT = SortField.UPDATED_AT,
+export enum TeamSortFieldEnum {
+  CREATED_AT = SortFieldEnum.CREATED_AT,
+  UPDATED_AT = SortFieldEnum.UPDATED_AT,
   CODE = 'code',
   NAME = 'name',
   DEPARTMENT = 'department',
@@ -11,7 +11,7 @@ export enum TeamSortField {
 }
 
 export const TEAM_SORT_MAP: Record<
-  TeamSortField,
+  TeamSortFieldEnum,
   Prisma.TeamOrderByWithRelationInput
 > = {
   createdAt: { createdAt: 'asc' },

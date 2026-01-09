@@ -8,7 +8,10 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ROLE_MESSAGE } from './constants/role.error.constant';
 import { ROLE_SELECT_PROPERTIES } from './constants/role.select.constant';
-import { ROLE_SORT_MAP, RoleSortField } from './constants/role.sort.constant';
+import {
+  ROLE_SORT_MAP,
+  RoleSortFieldEnum,
+} from './constants/role.sort.constant';
 import { RoleCreateDto, UpdateRoleDto } from './dtos/role.input.dto';
 import { RoleSearchDto } from './dtos/role.search.dto';
 import { buildRoleWhere } from './queries/role.search.query';
@@ -42,7 +45,7 @@ export class RoleService {
 
   async findAll(query: RoleSearchDto) {
     const { page, limit, sortBy, orderBy } = normalizePaginationAndSort(query, {
-      sortBy: RoleSortField.CREATED_AT,
+      sortBy: RoleSortFieldEnum.CREATED_AT,
     });
     const prismaOrderBy = applySortOrder(ROLE_SORT_MAP[sortBy], orderBy);
     const where = buildRoleWhere(query);

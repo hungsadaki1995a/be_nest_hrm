@@ -9,7 +9,10 @@ import { TeamSearchDto } from './dtos/team.search.dto';
 import { buildTeamWhere } from './queries/team.search.query';
 import { normalizePaginationAndSort } from '@/utils/pagination-sort.util';
 import { buildPagination } from '@/utils/search.util';
-import { TEAM_SORT_MAP, TeamSortField } from './constants/team.sort.constant';
+import {
+  TEAM_SORT_MAP,
+  TeamSortFieldEnum,
+} from './constants/team.sort.constant';
 import { applySortOrder } from '@/utils/sort-transformer.util';
 import { getMessage } from '@/utils/message.util';
 
@@ -138,7 +141,7 @@ export class TeamService {
 
   async findAll(query: TeamSearchDto) {
     const { page, limit, sortBy, orderBy } = normalizePaginationAndSort(query, {
-      sortBy: TeamSortField.CREATED_AT,
+      sortBy: TeamSortFieldEnum.CREATED_AT,
     });
     const prismaOrderBy = applySortOrder(TEAM_SORT_MAP[sortBy], orderBy);
     const where = buildTeamWhere(query);

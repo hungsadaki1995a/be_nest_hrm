@@ -1,4 +1,4 @@
-import { GenderType } from '@/types/auth.type';
+import { GenderEnum } from '@/types/auth.type';
 import { ApiProperty } from '@nestjs/swagger';
 import { UserRoleDto } from '../dto/user-role.dto';
 
@@ -38,8 +38,12 @@ export class UserResponseDto {
   @ApiProperty({ example: true })
   isActive: boolean;
 
-  @ApiProperty({ example: 'male' })
-  gender: GenderType;
+  @ApiProperty({
+    example: 'MALE',
+    enum: GenderEnum,
+    enumName: 'GenderEnum',
+  })
+  gender: GenderEnum;
 
   @ApiProperty({ type: [UserRoleDto] })
   roles: UserRoleDto[];

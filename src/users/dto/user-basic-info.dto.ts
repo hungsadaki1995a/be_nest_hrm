@@ -1,4 +1,4 @@
-import { GenderType } from '@/types/auth.type';
+import { GenderEnum } from '@/types/auth.type';
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsBoolean,
@@ -36,10 +36,14 @@ export class UserBasicInfoDto {
   @IsOptional()
   dateOfBirth?: Date;
 
-  @ApiProperty({ example: 'male' })
-  @IsEnum(GenderType)
+  @ApiProperty({
+    example: 'MALE',
+    enum: GenderEnum,
+    enumName: 'GenderEnum',
+  })
+  @IsEnum(GenderEnum)
   @IsNotEmpty()
-  gender: GenderType;
+  gender: GenderEnum;
 
   @ApiProperty({ example: '888888888888' })
   @IsString()

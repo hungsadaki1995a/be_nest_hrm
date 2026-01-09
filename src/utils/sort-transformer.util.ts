@@ -1,15 +1,15 @@
-import { SortOrder } from '@/types/sort.type';
+import { SortOrderEnum } from '@/types/sort.type';
 import { TransformFnParams } from 'class-transformer';
 
-function isSortOrder(value: string): value is SortOrder {
-  return Object.values(SortOrder).includes(value as SortOrder);
+function isSortOrder(value: string): value is SortOrderEnum {
+  return Object.values(SortOrderEnum).includes(value as SortOrderEnum);
 }
 
 export function transformSortOrder({
   value,
 }: {
   value?: unknown;
-}): SortOrder | undefined {
+}): SortOrderEnum | undefined {
   if (typeof value !== 'string') return;
 
   const v = value.toLowerCase();
@@ -33,7 +33,7 @@ export function transformSortBy<T extends string>(enumObj: Record<string, T>) {
 
 export function applySortOrder<T extends Record<string, any>>(
   template: T,
-  order: SortOrder,
+  order: SortOrderEnum,
 ): T {
   return Object.fromEntries(
     Object.entries(template).map(([k, v]) => [

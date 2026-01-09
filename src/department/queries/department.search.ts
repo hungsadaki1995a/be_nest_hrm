@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client';
 import { DepartmentSearchDto } from '../dtos/department.search.dto';
 import { icontains } from '@/utils/search.util';
-import { DepartmentSearchType } from '../constants/department.search.constant';
+import { DepartmentSearchTypeEnum } from '../constants/department.search.constant';
 
 export function buildDepartmentWhere(
   dto: DepartmentSearchDto,
@@ -11,13 +11,13 @@ export function buildDepartmentWhere(
   if (!query) return {};
 
   switch (type) {
-    case DepartmentSearchType.CODE:
+    case DepartmentSearchTypeEnum.CODE:
       return { code: icontains(query) };
 
-    case DepartmentSearchType.NAME:
+    case DepartmentSearchTypeEnum.NAME:
       return { name: icontains(query) };
 
-    case DepartmentSearchType.HEAD:
+    case DepartmentSearchTypeEnum.HEAD:
       return {
         head: {
           is: {
@@ -31,7 +31,7 @@ export function buildDepartmentWhere(
         },
       };
 
-    case DepartmentSearchType.TEAM:
+    case DepartmentSearchTypeEnum.TEAM:
       return {
         teams: {
           some: {
@@ -40,7 +40,7 @@ export function buildDepartmentWhere(
         },
       };
 
-    case DepartmentSearchType.ALL:
+    case DepartmentSearchTypeEnum.ALL:
     default:
       return {
         OR: [{ code: icontains(query) }, { name: icontains(query) }],

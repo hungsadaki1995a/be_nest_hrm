@@ -1,7 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import { IsEnum, IsInt, IsOptional, IsString, Min } from 'class-validator';
-import { SortOrder } from '@/types/sort.type';
+import { SortOrderEnum } from '@/types/sort.type';
 import {
   DEFAULT_PAGE,
   DEFAULT_PAGE_SIZE,
@@ -35,13 +35,14 @@ export class SearchQueryDto {
   limit?: number = DEFAULT_PAGE_SIZE;
 
   @ApiPropertyOptional({
-    enum: SortOrder,
-    default: SortOrder.DESC,
-    example: SortOrder.DESC,
+    enum: SortOrderEnum,
+    enumName: 'SortOrderEnum',
+    default: SortOrderEnum.DESC,
+    example: SortOrderEnum.DESC,
     description: 'Order',
   })
   @Transform(transformSortOrder)
-  @IsEnum(SortOrder)
+  @IsEnum(SortOrderEnum)
   @IsOptional()
-  orderBy: SortOrder = SortOrder.DESC;
+  orderBy: SortOrderEnum = SortOrderEnum.DESC;
 }

@@ -3,26 +3,28 @@ import { transformSortBy } from '@/utils/sort-transformer.util';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { IsEnum, IsOptional } from 'class-validator';
-import { RoleSearchType } from '../constants/role.search.constant';
-import { RoleSortField } from '../constants/role.sort.constant';
+import { RoleSearchTypeEnum } from '../constants/role.search.constant';
+import { RoleSortFieldEnum } from '../constants/role.sort.constant';
 
 export class RoleSearchDto extends SearchQueryDto {
   @ApiPropertyOptional({
     description: 'Sort by field',
-    enum: RoleSortField,
-    default: RoleSortField.CREATED_AT,
+    enum: RoleSortFieldEnum,
+    enumName: 'RoleSortFieldEnum',
+    default: RoleSortFieldEnum.CREATED_AT,
   })
-  @Transform(transformSortBy(RoleSortField))
-  @IsEnum(RoleSortField)
+  @Transform(transformSortBy(RoleSortFieldEnum))
+  @IsEnum(RoleSortFieldEnum)
   @IsOptional()
-  sortBy?: RoleSortField = RoleSortField.CREATED_AT;
+  sortBy?: RoleSortFieldEnum = RoleSortFieldEnum.CREATED_AT;
 
   @ApiPropertyOptional({
     description: 'Type of search',
-    enum: RoleSearchType,
-    default: RoleSearchType.ALL,
+    enum: RoleSearchTypeEnum,
+    enumName: 'RoleSearchTypeEnum',
+    default: RoleSearchTypeEnum.ALL,
   })
-  @IsEnum(RoleSearchType)
+  @IsEnum(RoleSearchTypeEnum)
   @IsOptional()
-  type?: RoleSearchType = RoleSearchType.ALL;
+  type?: RoleSearchTypeEnum = RoleSearchTypeEnum.ALL;
 }
