@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsStrongPassword } from 'class-validator';
 
 export class LoginDto {
-  @ApiProperty({ example: '23053239' })
+  @ApiProperty({ example: '88888888' })
   @IsString()
   employeeId: string;
 

@@ -5,41 +5,49 @@ import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
-  ApiExcludeEndpoint,
+  ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { AuthService } from './auth.service';
-import { LoginDto } from './dto/login.dto';
-import { SendOtpDto } from './dto/send-otp.dto';
-import { VerifyOtpDto } from './dto/verify-otp.dto';
+import { LoginDto } from './dtos/auth.input.dto';
+import { SendOtpDto } from './dtos/send-otp.dto';
+import { VerifyOtpDto } from './dtos/verify-otp.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { OtpService } from './otp.service';
 import { ApiResponseMessage } from '@/decorators/api-response-message.decorator';
+import { BaseController } from '@/controllers/base.controller';
+import { LoginResponseDto } from './dtos/auth.response.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
-export class AuthController {
+export class AuthController extends BaseController {
   constructor(
     private service: AuthService,
     private permissionService: PermissionService,
     private otpService: OtpService,
-  ) {}
-
-  @Post('login')
-  login(@Body() dto: LoginDto) {
-    return this.service.login(dto.employeeId, dto.password);
+  ) {
+    super();
   }
 
-  @Post()
-  @ApiExcludeEndpoint()
-  create() {
-    return this.service.create();
+  @Post('login')
+  @ApiResponse(LoginResponseDto)
+  @ApiOperation({
+    summary: 'Login',
+    description: 'Login',
+  })
+  login(@Body() dto: LoginDto) {
+    return this.service.login(dto.employeeId, dto.password);
   }
 
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('access-token')
   @Get('profile')
+  @ApiResponse(LoginResponseDto)
+  @ApiOperation({
+    summary: 'Get profile',
+    description: 'Get current user profile',
+  })
   getProfile(@Req() req: { user: { employeeId: string } }) {
     return this.service.getProfile(req.user.employeeId);
   }

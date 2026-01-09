@@ -11,28 +11,39 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { UserCreateDto } from './dto/create-user.dto';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserUpdateDto } from './dto/update-user.dto';
 import { UserDetailDto } from './dto/user-detail.dto';
-import { UserListResponseDto } from './dto/user-list-response.dto';
 import { UserSearchDto } from './dto/user-search.dto';
 import { UsersService } from './users.service';
+import { BaseController } from '@/controllers/base.controller';
+import { UserCreateDto } from './dtos/user.input.dto';
+import { UserResponseDto } from './dtos/user.response.dto';
 
 @ApiTags('User')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth('access-token')
 @Controller('users')
-export class UsersController {
-  constructor(private service: UsersService) {}
+export class UsersController extends BaseController {
+  constructor(private service: UsersService) {
+    super();
+  }
+
+  @Post()
+  @ApiOperation({
+    summary: 'Create user',
+    description: 'Create new user',
+  })
+  create(@Body() payload: UserCreateDto) {
+    return this.service.create(payload);
+  }
 
   @Get()
-  @ApiResponse(UserListResponseDto, true)
-  @ApiQuery({ name: 'query', required: false })
-  @ApiQuery({ name: 'page', required: false })
-  @ApiQuery({ name: 'limit', required: false })
-  @ApiQuery({ name: 'sortBy', required: false })
-  @ApiQuery({ name: 'orderBy', required: false })
+  @ApiResponse(UserResponseDto, true)
+  @ApiOperation({
+    summary: 'Get all users',
+    description: 'Retrieve all users with optional filters',
+  })
   findAll(@Query() query: UserSearchDto) {
     return this.service.findAll(query);
   }
@@ -47,11 +58,6 @@ export class UsersController {
     const employee = await this.service.findByEmployeeId(employeeId);
 
     return employee;
-  }
-
-  @Post()
-  create(@Body() payload: UserCreateDto) {
-    return this.service.create(payload);
   }
 
   @Put(':employeeId')

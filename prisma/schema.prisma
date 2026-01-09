@@ -13,44 +13,143 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum AuthStatus {
+  ACTIVE
+  LOCKED
+  DISABLED
+}
+
 model Auth {
-  id          Int       @id @default(autoincrement())
-  employeeId  String    @unique
+  id          Int        @id @default(autoincrement())
+  userId      Int        @unique
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   password    String
-  isActive    Boolean   @default(true)
-  userId      Int       @unique
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status      AuthStatus @default(ACTIVE)
   lastLoginAt DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("auth")
 }
 
-model User {
-  id          Int        @id @default(autoincrement())
-  employeeId  String     @unique
-  fullName    String
-  email       String?    @unique
-  phoneNumber String?    @unique
-  roles       UserRole[]
-  dateOfBirth DateTime?
-  address     String?
-  onBoardAt   DateTime?
-  avatarUrl   String?
-  gender      String?
-  identityId  String?
-  auth        Auth?
+enum UserStatus {
+  WORKING
+  RESIGN
+  SUSPENDED
+  PROBATION
+}
 
-  headOf    Department[] @relation("DepartmentHead")
-  leadOf    Team[]       @relation("TeamLeader")
-  membersOf TeamMember[]
+model User {
+  id          Int     @id @default(autoincrement())
+  employeeId  String  @unique
+  fullName    String
+  email       String  @unique
+  phoneNumber String  @unique
+  avatarUrl   String?
+
+  auth              Auth?
+  status            UserStatus         @default(WORKING)
+  roles             UserRole[]
+  headOf            Department[]       @relation("DepartmentHead")
+  leadOf            Team[]             @relation("TeamLeader")
+  membersOf         TeamMember[]
+  emergencyContacts EmergencyContact[]
+  profile           UserProfile?
+  profileHistory    UserProfileHistory[]
+  employee          EmployeeInfo?
+  employeeHistory   EmployeeInfoHistory[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  isActive  Boolean  @default(true)
 
+  @@index([status])
   @@map("users")
+}
+
+model EmergencyContact {
+  id           Int     @id @default(autoincrement())
+  userId       Int
+  name         String
+  phone        String
+  relationship String
+  isPrimary    Boolean @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("emergency_contacts")
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum MaritalStatus {
+  SINGLE
+  MARRIED
+  DIVORCED
+  WIDOWED
+  UNKNOWN
+}
+
+model UserProfile {
+  userId               Int            @id
+  englishName          String?
+  gender               Gender?
+  nationality          String?
+  dateOfBirth          DateTime?
+  identityId           String?
+  identityIdIssueDate  DateTime?
+  identityIdIssuePlace String?
+  address              String?
+  maritalStatus        MaritalStatus?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_profiles")
+}
+
+model UserProfileHistory {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  snapshot  Json
+  changedBy Int?
+  changedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_profile_history")
+}
+
+model EmployeeInfo {
+  userId       Int       @id
+  level        String
+  onBoardAt    DateTime
+  resignedAt   DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("employee_info")
+}
+
+model EmployeeInfoHistory {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  snapshot  Json
+  changedBy Int?
+  changedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("employee_info_history")
 }
 
 model Role {
@@ -58,13 +157,13 @@ model Role {
   code        String  @unique
   name        String
   description String?
+  isActive    Boolean @default(true)
 
   users       UserRole[]
   permissions RolePermission[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  isActive  Boolean  @default(true)
 
   @@map("roles")
 }
@@ -76,8 +175,6 @@ model UserRole {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
 
-  assignedAt DateTime @default(now())
-
   @@id([userId, roleId])
   @@map("user_roles")
 }
@@ -87,15 +184,14 @@ model Department {
   code        String  @unique
   name        String
   description String?
+  isActive    Boolean @default(true)
 
   headId Int
-  head   User @relation("DepartmentHead", fields: [headId], references: [id], onDelete: Restrict)
-
-  teams Team[]
+  head   User   @relation("DepartmentHead", fields: [headId], references: [id], onDelete: Restrict)
+  teams  Team[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  isActive  Boolean  @default(true)
 
   @@index([headId])
   @@map("departments")
@@ -106,18 +202,16 @@ model Team {
   code        String  @unique
   name        String
   description String?
+  isActive    Boolean @default(true)
 
   departmentId Int
-  department   Department @relation(fields: [departmentId], references: [id], onDelete: Restrict)
-
-  leaderId Int?
-  leader   User? @relation("TeamLeader", fields: [leaderId], references: [id], onDelete: SetNull)
-
-  members TeamMember[]
+  department   Department   @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+  leaderId     Int?
+  leader       User?        @relation("TeamLeader", fields: [leaderId], references: [id], onDelete: SetNull)
+  members      TeamMember[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  isActive  Boolean  @default(true)
 
   @@index([departmentId])
   @@index([leaderId])
@@ -135,9 +229,18 @@ model TeamMember {
   @@map("team_members")
 }
 
+enum Page {
+  ROLE
+  PERMISSION
+  USER
+  DASHBOARD
+  DEPARTMENT
+  TEAM
+}
+
 model RolePermission {
   roleId Int
-  page   String
+  page   Page
 
   canCreate Boolean @default(false)
   canRead   Boolean @default(false)
@@ -147,7 +250,7 @@ model RolePermission {
   role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
 
   @@id([roleId, page])
-  @@map("role_permission")
+  @@map("role_permissions")
 }
 
 enum OtpPurpose {
@@ -155,17 +258,18 @@ enum OtpPurpose {
 }
 
 model Otp {
-  id       Int        @id @default(autoincrement())
-  email    String
-  otpHash  String
-  isActive Boolean    @default(false)
-  attempts Int        @default(0)
-  purpose  OtpPurpose @default(RESET_PASSWORD)
-
+  id        Int        @id @default(autoincrement())
+  email     String
+  otpHash   String
+  isActive  Boolean    @default(false)
+  attempts  Int        @default(0)
+  purpose   OtpPurpose @default(RESET_PASSWORD)
   usedAt    DateTime?
   revokedAt DateTime?
   expiresAt DateTime
-  createdAt DateTime  @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([email])
   @@map("otps")
