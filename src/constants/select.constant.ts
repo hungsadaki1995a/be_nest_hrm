@@ -26,4 +26,5 @@ export const ROLE_SELECT = {
   id: true,
   code: true,
   name: true,
+  description: true,
 };

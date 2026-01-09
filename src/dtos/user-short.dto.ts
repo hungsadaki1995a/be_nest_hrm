@@ -53,7 +53,7 @@ export class UserBaseDto {
   avatarUrl?: string | null;
 }
 
-export class UserShortDto {
+export class UserShortDto extends UserBaseDto {
   @ApiProperty({
     example: 1,
     description: 'Unique User ID',

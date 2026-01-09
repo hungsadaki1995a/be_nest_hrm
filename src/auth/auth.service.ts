@@ -14,6 +14,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { AUTH_ERROR_MESSAGE } from './constants/auth.error.constant';
 import { SELECT_USER_PROPERTIES } from '@/constants/select.constant';
 import { AUTH_SELECT } from './constants/auth.select.constant';
+import { LoginResponseDto } from './dtos/auth.response.dto';
 
 type TToken = { employeeId?: string; sub?: string };
 
@@ -143,7 +144,7 @@ export class AuthService {
     }
   }
 
-  async login(employeeId: string, password: string) {
+  async login(employeeId: string, password: string): Promise<LoginResponseDto> {
     this.validateEmployeeId(employeeId);
     this.validatePassword(password);
 
@@ -155,7 +156,7 @@ export class AuthService {
       throw new AppException(getMessage(AUTH_ERROR_MESSAGE.incorrect));
     }
 
-    const roles = auth.user.roles.map((r) => r.role.code);
+    const roles = auth.user.roles.map((r) => r.role);
 
     const payload = {
       sub: auth.user.id,
@@ -169,11 +170,8 @@ export class AuthService {
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
       expiresIn: tokens.accessTokenExp,
-      user: {
-        id: auth.user.id,
-        employeeId: user.employeeId,
-        roles,
-      },
+      user,
+      roles,
     };
   }
 

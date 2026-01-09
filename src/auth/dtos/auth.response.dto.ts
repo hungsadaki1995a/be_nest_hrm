@@ -1,16 +1,8 @@
+import { RoleShortDto } from '@/dtos/role-short.dto';
+import { UserShortDto } from '@/dtos/user-short.dto';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-
-class User {
-  @ApiProperty({ description: "User's ID" })
-  id: number;
-
-  @ApiProperty({ description: "User's Employee ID" })
-  employeeId: string;
-
-  @ApiProperty({ description: "User's Roles" })
-  role: string[];
-}
+import { ValidateNested } from 'class-validator';
 
 export class LoginResponseDto {
   @ApiProperty({ description: 'Access Token' })
@@ -22,7 +14,12 @@ export class LoginResponseDto {
   @ApiProperty({ description: 'Expire' })
   expiresIn: number;
 
-  @Type(() => User)
-  @ApiProperty({ type: () => User })
-  user: User;
+  @Type(() => UserShortDto)
+  @ApiProperty({ type: () => UserShortDto })
+  user: UserShortDto;
+
+  @ApiProperty({ type: () => [RoleShortDto] })
+  @ValidateNested({ each: true })
+  @Type(() => RoleShortDto)
+  roles: RoleShortDto[];
 }
