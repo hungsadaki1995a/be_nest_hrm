@@ -2,7 +2,7 @@ import { AppException } from '@/app.exception';
 import {
   TOKEN_EXPIRE_DEFAULT,
   REFRESH_TOKEN_EXPIRE_DEFAULT,
-} from '@/constants/expired.constant';
+} from '@/constants/auth.constant';
 import { ERROR_MESSAGE } from '@/constants/message.constant';
 import { getMessage } from '@/utils/message.util';
 import { HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';

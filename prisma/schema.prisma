@@ -79,6 +79,7 @@ model UserRole {
   assignedAt DateTime @default(now())
 
   @@id([userId, roleId])
+  @@index([userId])
   @@map("user_roles")
 }
 
@@ -135,9 +136,18 @@ model TeamMember {
   @@map("team_members")
 }
 
+enum Page {
+  DASHBOARD
+  USER
+  DEPARTMENT
+  TEAM
+  ROLE
+  PERMISSION
+}
+
 model RolePermission {
   roleId Int
-  page   String
+  page   Page
 
   canCreate Boolean @default(false)
   canRead   Boolean @default(false)
@@ -147,6 +157,7 @@ model RolePermission {
   role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
 
   @@id([roleId, page])
+  @@index([roleId])
   @@map("role_permission")
 }
 
