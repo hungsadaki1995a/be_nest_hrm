@@ -13,10 +13,19 @@ import { Request } from 'express';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AUTH_ERROR_MESSAGE } from './constants/auth.error.constant';
 import { SELECT_USER_PROPERTIES } from '@/constants/select.constant';
-import { AUTH_SELECT } from './constants/auth.select.constant';
-import { LoginResponseDto } from './dtos/auth.response.dto';
+import {
+  AUTH_PROFILE_SELECT,
+  AUTH_SELECT,
+} from './constants/auth.select.constant';
 import { Prisma } from '@prisma/client';
 import { hashPassword } from '@/utils/password.util';
+import {
+  throwIfFalse,
+  throwIfMissing,
+  throwIfTrue,
+} from '@/utils/validate.util';
+import { handlePrismaError } from '@/prisma/prisma-error.handler';
+import { RoleShortDto } from '@/dtos/role-short.dto';
 
 type TToken = { employeeId?: string; sub?: string };
 
@@ -28,13 +37,19 @@ export class AuthService {
     private readonly configService: ConfigService,
   ) {}
 
-  private generateTokens(payload: Record<string, any>) {
-    const accessToken = this.jwtService.sign(payload as object, {
+  private generateTokens(
+    userId: number,
+    employeeId: string,
+    roles: RoleShortDto[],
+  ) {
+    const payload = { userId, employeeId, roles };
+
+    const accessToken = this.jwtService.sign(payload, {
       secret: this.configService.get<string>('auth.jwt.accessToken.secret'),
       expiresIn: TOKEN_EXPIRE_DEFAULT,
     });
 
-    const refreshToken = this.jwtService.sign(payload as object, {
+    const refreshToken = this.jwtService.sign(payload, {
       secret: this.configService.get<string>('auth.jwt.refreshToken.secret'),
       expiresIn: REFRESH_TOKEN_EXPIRE_DEFAULT,
     });
@@ -47,102 +62,85 @@ export class AuthService {
     };
   }
 
-  private validateEmployeeId(employeeId?: string) {
-    if (!employeeId) {
-      throw new AppException(
-        getMessage(ERROR_MESSAGE.required, ['Employee ID']),
-        HttpStatus.UNAUTHORIZED,
-      );
+  validateConfirmPassword(password?: string, confirmPassword?: string) {
+    throwIfMissing(password, { field: 'Password' });
+    throwIfMissing(confirmPassword, { field: 'Confirm Password' });
+
+    if (confirmPassword && password !== confirmPassword) {
+      throw new AppException(getMessage(AUTH_ERROR_MESSAGE.passwordDoNotMatch));
     }
   }
 
-  private async convertEmployeeIdToUser(employeeId?: string) {
-    this.validateEmployeeId(employeeId);
-
+  private async getUser(employeeId: string) {
     const user = await this.prisma.user.findUnique({
       where: { employeeId },
       select: SELECT_USER_PROPERTIES,
     });
 
-    if (!user) {
-      throw new AppException(getMessage(AUTH_ERROR_MESSAGE.incorrect));
-    }
+    throwIfMissing(user, { message: getMessage(AUTH_ERROR_MESSAGE.inactive) });
 
     return user;
   }
 
-  private async validateAuth(userId: number) {
+  private async getAuth(userId: number) {
     const auth = await this.prisma.auth.findUnique({
-      where: { userId },
+      where: { userId, status: 'ACTIVE' },
       select: AUTH_SELECT,
     });
 
-    if (!auth || auth.status !== 'ACTIVE') {
-      throw new AppException(getMessage(AUTH_ERROR_MESSAGE.inactive));
-    }
+    throwIfMissing(auth, { message: getMessage(AUTH_ERROR_MESSAGE.inactive) });
 
-    return auth;
+    const roles = auth.user.roles.map((r) => r.role);
+
+    return { auth, roles };
   }
 
-  private validateHeader(req: Request) {
+  private async getEmployeeIdFromReq(req: Request) {
     const authHeader = req.headers.authorization;
 
-    if (!authHeader?.startsWith('Bearer ')) {
-      throw new AppException(
-        getMessage(AUTH_ERROR_MESSAGE.missingHeader),
-        HttpStatus.UNAUTHORIZED,
-      );
-    }
-
-    return authHeader;
-  }
-
-  private validateToken(token?: string) {
-    if (!token) {
-      throw new AppException(
-        getMessage(AUTH_ERROR_MESSAGE.missingToken),
-        HttpStatus.UNAUTHORIZED,
-      );
-    }
-
-    return token;
-  }
-
-  private async decodeToken(token: string, secret?: string) {
-    if (!secret) {
-      throw new AppException(
-        getMessage(AUTH_ERROR_MESSAGE.missingToken),
-        HttpStatus.UNAUTHORIZED,
-      );
-    }
-
-    const decodedToken = await this.jwtService.verifyAsync<TToken>(token, {
-      secret,
+    throwIfMissing(authHeader, {
+      message: getMessage(AUTH_ERROR_MESSAGE.missingHeader),
     });
 
-    if (!decodedToken || !decodedToken.employeeId) {
+    throwIfFalse(authHeader?.startsWith('Bearer '), {
+      message: getMessage(AUTH_ERROR_MESSAGE.missingHeader),
+    });
+
+    const token = authHeader.split(' ')[1];
+    const secret = this.configService.get<string>(
+      'auth.jwt.refreshToken.secret',
+    );
+
+    throwIfMissing(secret, {
+      message: getMessage(AUTH_ERROR_MESSAGE.missingToken),
+      status: HttpStatus.UNAUTHORIZED,
+    });
+
+    let decodedToken: TToken;
+
+    try {
+      decodedToken = await this.jwtService.verifyAsync<TToken>(token, {
+        secret,
+      });
+    } catch (err) {
+      console.log('Error decode token', err);
       throw new AppException(
         getMessage(AUTH_ERROR_MESSAGE.missingToken),
         HttpStatus.UNAUTHORIZED,
       );
     }
 
-    return decodedToken;
-  }
+    throwIfMissing(decodedToken, {
+      message: AUTH_ERROR_MESSAGE.missingToken,
+      status: HttpStatus.UNAUTHORIZED,
+    });
 
-  validatePassword(password?: string) {
-    if (!password) {
-      throw new AppException(getMessage(ERROR_MESSAGE.required, ['Password']));
-    }
-  }
+    throwIfMissing(decodedToken.employeeId, {
+      message: AUTH_ERROR_MESSAGE.missingToken,
+      status: HttpStatus.UNAUTHORIZED,
+    });
 
-  validateConfirmPassword(password?: string, confirmPassword?: string) {
-    this.validatePassword(password);
-    this.validatePassword(confirmPassword);
-
-    if (confirmPassword && password !== confirmPassword) {
-      throw new AppException(getMessage(AUTH_ERROR_MESSAGE.passwordDoNotMatch));
-    }
+    return decodedToken.employeeId;
   }
 
   async create(
@@ -150,171 +148,119 @@ export class AuthService {
     password: string,
     tx?: Prisma.TransactionClient,
   ) {
-    this.validatePassword(password);
-    const passwordHash = await hashPassword(password);
+    throwIfMissing(password, { field: 'Password' });
 
+    const passwordHash = await hashPassword(password);
     const client = tx ?? this.prisma;
 
-    return client.auth.create({
-      data: {
-        userId,
-        password: passwordHash,
-      },
-    });
+    try {
+      return client.auth.create({
+        data: {
+          userId,
+          password: passwordHash,
+        },
+      });
+    } catch (e) {
+      handlePrismaError(e, { module: 'Auth', entity: 'User' });
+    }
   }
 
-  async login(employeeId: string, password: string): Promise<LoginResponseDto> {
-    console.log('employeeId', employeeId);
-    console.log('password', password);
+  async login(employeeId: string, password: string) {
+    throwIfMissing(employeeId, { field: 'Employee ID' });
+    throwIfMissing(password, { field: 'Password' });
 
-    this.validateEmployeeId(employeeId);
-    this.validatePassword(password);
+    const user = await this.getUser(employeeId);
+    const { auth, roles } = await this.getAuth(user.id);
 
-    const user = await this.convertEmployeeIdToUser(employeeId);
-    const auth = await this.validateAuth(user.id);
-    const isPasswordValid = await bcrypt.compare(password, auth.password);
+    throwIfFalse(await bcrypt.compare(password, auth.password), {
+      message: getMessage(AUTH_ERROR_MESSAGE.incorrect),
+    });
 
-    if (!isPasswordValid) {
-      throw new AppException(getMessage(AUTH_ERROR_MESSAGE.incorrect));
-    }
-
-    const roles = auth.user.roles.map((r) => r.role);
-
-    const payload = {
-      sub: auth.user.id,
-      employeeId: user.employeeId,
-      roles,
-    };
-
-    const tokens = this.generateTokens(payload);
+    const tokens = this.generateTokens(auth.user.id, user.employeeId, roles);
 
     return {
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
-      expiresIn: tokens.accessTokenExp,
+      ...tokens,
       user,
       roles,
     };
   }
 
   findByEmployeeId(employeeId: string) {
-    this.validateEmployeeId(employeeId);
+    throwIfMissing(employeeId, {
+      field: 'Employee ID',
+      status: HttpStatus.NOT_FOUND,
+    });
 
-    return this.prisma.user.findUnique({
+    const user = this.prisma.user.findUnique({
       where: {
         employeeId,
       },
     });
+
+    throwIfMissing(user, {
+      message: getMessage(ERROR_MESSAGE.notFound, ['User']),
+      status: HttpStatus.NOT_FOUND,
+    });
+
+    return user;
   }
 
   async getProfile(employeeId: string) {
-    this.validateEmployeeId(employeeId);
+    throwIfMissing(employeeId, {
+      field: 'Employee ID',
+      status: HttpStatus.NOT_FOUND,
+    });
 
     const employee = await this.prisma.user.findUnique({
       where: { employeeId },
+      select: AUTH_PROFILE_SELECT,
     });
 
-    if (!employee) {
-      throw new AppException(getMessage(AUTH_ERROR_MESSAGE.inactive));
-    }
+    throwIfMissing(employee, {
+      message: getMessage(ERROR_MESSAGE.notFound, ['User']),
+      status: HttpStatus.NOT_FOUND,
+    });
 
     return employee;
   }
 
-  async logout(req: Request) {
-    try {
-      const authHeader = this.validateHeader(req);
-      const token = this.validateToken(authHeader.split(' ')[1]);
-      const secret = this.configService.get<string>(
-        'auth.jwt.accessToken.secret',
-      );
-      const decodedToken = await this.decodeToken(token, secret);
-
-      await this.deactivateToken(decodedToken.employeeId);
-
-      return {
-        message: AUTH_ERROR_MESSAGE.logoutSuccess,
-      };
-    } catch (error) {
-      console.error('Logout error:', error);
-      throw new AppException(
-        getMessage(AUTH_ERROR_MESSAGE.logoutFailed),
-        HttpStatus.UNAUTHORIZED,
-      );
-    }
-  }
-
   async refreshToken(req: Request) {
-    try {
-      const authHeader = this.validateHeader(req);
-      const token = authHeader.split(' ')[1];
-      const secret = this.configService.get<string>(
-        'auth.jwt.refreshToken.secret',
-      );
+    const employeeId = await this.getEmployeeIdFromReq(req);
 
-      const decodedToken = await this.decodeToken(token, secret);
-      const user = await this.convertEmployeeIdToUser(decodedToken.employeeId);
-      const auth = await this.validateAuth(user.id);
+    const user = await this.getUser(employeeId);
+    const { auth, roles } = await this.getAuth(user.id);
 
-      const roles =
-        (auth.user?.roles || [])
-          .map((r) =>
-            typeof r?.role?.code === 'string' ? r.role.code : undefined,
-          )
-          .filter((code) => Boolean(code)) || [];
+    const tokens = this.generateTokens(auth.user.id, user.employeeId, roles);
 
-      const payload = {
-        sub: auth.user?.id,
-        employeeId: user.employeeId,
-        roles,
-      };
-
-      return this.generateTokens(payload);
-    } catch (error) {
-      console.error('Refresh token error:', error);
-      throw new AppException(
-        getMessage(AUTH_ERROR_MESSAGE.missingToken),
-        HttpStatus.UNAUTHORIZED,
-      );
-    }
-  }
-
-  async deactivateToken(employeeId?: string) {
-    const user = await this.convertEmployeeIdToUser(employeeId);
-
-    return this.prisma.auth.update({
-      where: {
-        userId: user.id,
-      },
-      data: {
-        updatedAt: new Date(),
-      },
-    });
+    return {
+      ...tokens,
+      user,
+      roles,
+    };
   }
 
   async resetPassword(email: string, newPassword: string) {
-    this.validatePassword(newPassword);
+    throwIfMissing(newPassword, { field: 'Password' });
 
     const user = await this.prisma.user.findUnique({
       where: { email },
       include: { auth: true },
     });
 
-    if (!user) {
-      throw new AppException(getMessage(AUTH_ERROR_MESSAGE.incorrect));
-    }
+    throwIfMissing(user, { message: getMessage(AUTH_ERROR_MESSAGE.incorrect) });
 
     const passwordHash = await hashPassword(newPassword);
-
-    await this.prisma.auth.update({
-      where: { userId: user.id },
-      data: {
-        password: passwordHash,
-        updatedAt: new Date(),
-      },
-    });
-
-    return true;
+    try {
+      return await this.prisma.auth.update({
+        where: { userId: user.id },
+        data: {
+          password: passwordHash,
+          updatedAt: new Date(),
+        },
+      });
+    } catch (e) {
+      handlePrismaError(e, { module: 'Auth', entity: 'User' });
+    }
   }
 
   async changePassword(
@@ -324,46 +270,32 @@ export class AuthService {
     confirmPassword: string,
   ) {
     this.validateConfirmPassword(newPassword, confirmPassword);
-
-    if (!oldPassword) {
-      throw new AppException(
-        getMessage(ERROR_MESSAGE.required, ['Current Password']),
-      );
-    }
-
-    if (oldPassword === newPassword) {
-      throw new AppException(
-        getMessage(AUTH_ERROR_MESSAGE.passwordMatch, [
-          'New Password',
-          'Current Password',
-        ]),
-      );
-    }
-
-    const auth = await this.prisma.auth.findUnique({
-      where: { userId },
+    throwIfMissing(oldPassword, { field: 'Current Password' });
+    throwIfTrue(oldPassword === newPassword, {
+      message: getMessage(AUTH_ERROR_MESSAGE.passwordMatch, [
+        'New Password',
+        'Current Password',
+      ]),
     });
 
-    if (!auth) {
-      throw new AppException(getMessage(AUTH_ERROR_MESSAGE.inactive));
-    }
+    const { auth } = await this.getAuth(userId);
 
-    const isOldPasswordValid = await bcrypt.compare(oldPassword, auth.password);
-
-    if (!isOldPasswordValid) {
-      throw new AppException(getMessage(AUTH_ERROR_MESSAGE.incorrect));
-    }
+    throwIfFalse(await bcrypt.compare(oldPassword, auth.password), {
+      message: getMessage(AUTH_ERROR_MESSAGE.incorrect),
+    });
 
     const passwordHash = await hashPassword(newPassword);
 
-    await this.prisma.auth.update({
-      where: { userId },
-      data: {
-        password: passwordHash,
-        updatedAt: new Date(),
-      },
-    });
-
-    return true;
+    try {
+      return await this.prisma.auth.update({
+        where: { userId },
+        data: {
+          password: passwordHash,
+          updatedAt: new Date(),
+        },
+      });
+    } catch (e) {
+      handlePrismaError(e, { module: 'Auth', entity: 'User' });
+    }
   }
 }

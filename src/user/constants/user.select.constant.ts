@@ -6,6 +6,7 @@ export const USER_SELECT_PROPERTIES = {
   fullName: true,
   email: true,
   phoneNumber: true,
+  status: true,
   roles: {
     select: {
       role: {
@@ -13,4 +14,6 @@ export const USER_SELECT_PROPERTIES = {
       },
     },
   },
+  createdAt: true,
+  updatedAt: true,
 } as const;

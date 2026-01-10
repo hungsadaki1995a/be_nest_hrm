@@ -11,8 +11,11 @@ export class LoginResponseDto {
   @ApiProperty({ description: 'Refresh Token' })
   refreshToken: string;
 
-  @ApiProperty({ description: 'Expire' })
-  expiresIn: number;
+  @ApiProperty({ description: 'Access Token Expire' })
+  accessTokenExp: number;
+
+  @ApiProperty({ description: 'Refresh Token Expire' })
+  refreshTokenExp: number;
 
   @Type(() => UserShortDto)
   @ApiProperty({ type: () => UserShortDto })

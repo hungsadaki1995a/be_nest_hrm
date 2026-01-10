@@ -5,7 +5,6 @@ export const SELECT_USER_PROPERTIES = {
   fullName: true,
   email: true,
   phoneNumber: true,
-  avatarUrl: true,
 };
 
 export const SELECT_DEPARTMENT_PROPERTIES = {
