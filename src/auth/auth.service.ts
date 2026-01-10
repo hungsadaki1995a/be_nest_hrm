@@ -15,6 +15,7 @@ import { AUTH_ERROR_MESSAGE } from './constants/auth.error.constant';
 import { SELECT_USER_PROPERTIES } from '@/constants/select.constant';
 import { AUTH_SELECT } from './constants/auth.select.constant';
 import { LoginResponseDto } from './dtos/auth.response.dto';
+import { Prisma } from '@prisma/client';
 
 type TToken = { employeeId?: string; sub?: string };
 
@@ -128,23 +129,42 @@ export class AuthService {
     return decodedToken;
   }
 
-  validatePassword(password?: string, confirmPassword?: string) {
+  validatePassword(password?: string) {
     if (!password) {
       throw new AppException(getMessage(ERROR_MESSAGE.required, ['Password']));
     }
+  }
 
-    if (!confirmPassword) {
-      throw new AppException(
-        getMessage(ERROR_MESSAGE.required, ['Confirm Password']),
-      );
-    }
+  validateConfirmPassword(password?: string, confirmPassword?: string) {
+    this.validatePassword(password);
+    this.validatePassword(confirmPassword);
 
     if (confirmPassword && password !== confirmPassword) {
       throw new AppException(getMessage(AUTH_ERROR_MESSAGE.passwordDoNotMatch));
     }
   }
 
+  async create(
+    userId: number,
+    password: string,
+    tx?: Prisma.TransactionClient,
+  ) {
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    const client = tx ?? this.prisma;
+
+    return client.auth.create({
+      data: {
+        userId,
+        password: passwordHash,
+      },
+    });
+  }
+
   async login(employeeId: string, password: string): Promise<LoginResponseDto> {
+    console.log('employeeId', employeeId);
+    console.log('password', password);
+
     this.validateEmployeeId(employeeId);
     this.validatePassword(password);
 
@@ -271,6 +291,8 @@ export class AuthService {
   }
 
   async resetPassword(email: string, newPassword: string) {
+    this.validatePassword(newPassword);
+
     const user = await this.prisma.user.findUnique({
       where: { email },
       include: { auth: true },
@@ -299,7 +321,7 @@ export class AuthService {
     newPassword: string,
     confirmPassword: string,
   ) {
-    this.validatePassword(newPassword, confirmPassword);
+    this.validateConfirmPassword(newPassword, confirmPassword);
 
     if (!oldPassword) {
       throw new AppException(

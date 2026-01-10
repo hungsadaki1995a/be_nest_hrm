@@ -1,3 +1,5 @@
+import { VALIDATION_MESSAGE } from '@/constants/message.constant';
+import { getMessage } from '@/utils/message.util';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsEmail,
@@ -14,7 +16,9 @@ export class UserBaseDto {
   })
   @IsString()
   @IsNotEmpty()
-  @Length(8)
+  @Length(8, 8, {
+    message: getMessage(VALIDATION_MESSAGE.exactlyChar, ['Employee ID', '8']),
+  })
   employeeId: string;
 
   @ApiProperty({
@@ -40,7 +44,9 @@ export class UserBaseDto {
   })
   @IsString()
   @IsNotEmpty()
-  @Length(10)
+  @Length(10, 10, {
+    message: getMessage(VALIDATION_MESSAGE.exactlyChar, ['Phone Number', '10']),
+  })
   phoneNumber: string;
 
   @ApiPropertyOptional({

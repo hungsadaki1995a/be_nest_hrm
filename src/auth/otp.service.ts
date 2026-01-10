@@ -154,7 +154,7 @@ export class OtpService {
   async verifyOtp(body: VerifyOtpDto) {
     const { email, otp, password, confirmPassword } = body;
 
-    this.authService.validatePassword(password, confirmPassword);
+    this.authService.validateConfirmPassword(password, confirmPassword);
 
     await this.prisma.$transaction(async (tx) => {
       // Lock record with FOR UPDATE

@@ -1,42 +1,15 @@
-import { HttpStatus, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { AppException } from './app.exception';
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './global-exception.filter';
 import { StripUndefinedPipe } from './pipes/strip-undefined.pipe';
 import { ResponseInterceptor } from './utils/response.interceptor';
+import { CustomValidationPipe } from './pipes/custom-validation.pipe';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-      exceptionFactory(errors) {
-        console.log('VALIDATION ERRORS:', JSON.stringify(errors, null, 2));
-
-        const messages = errors
-          .map((err) => {
-            if (err.constraints) {
-              return Object.values(err.constraints);
-            }
-            return [];
-          })
-          .flat();
-
-        return new AppException(
-          messages.join(', '),
-          HttpStatus.BAD_REQUEST,
-          'VALIDATION_ERROR',
-        );
-      },
-    }),
-    new StripUndefinedPipe(),
-  );
-
+  app.useGlobalPipes(new CustomValidationPipe(), new StripUndefinedPipe());
   app.useGlobalFilters(new GlobalExceptionFilter());
   app.useGlobalInterceptors(new ResponseInterceptor());
 
@@ -51,7 +24,7 @@ async function bootstrap() {
         bearerFormat: 'JWT',
         in: 'header',
       },
-      'access-token', // name
+      'access-token',
     )
     .build();
 

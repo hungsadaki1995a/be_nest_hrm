@@ -1,23 +1,16 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import auth from './config/auth';
 import mailer from './config/mailer';
-import { DepartmentController } from './department/department.controller';
-import { DepartmentService } from './department/department.service';
-import { PermissionController } from './permission/permission.controller';
-import { PermissionService } from './permission/permission.service';
 import { PrismaModule } from './prisma/prisma.module';
-import { RoleController } from './role/role.controller';
-import { RoleService } from './role/role.service';
-import { TeamController } from './team/team.controller';
-import { TeamService } from './team/team.service';
-import { UsersController } from './users/users.controller';
-import { UsersService } from './users/users.service';
 import { TOKEN_EXPIRE_DEFAULT } from './constants/expired.constant';
+import { PermissionModule } from './permission/permission.module';
+import { RoleModule } from './role/role.module';
+import { DepartmentModule } from './department/department.module';
+import { TeamModule } from './team/team.module';
+import { UserModule } from './users/user.module';
 
 @Module({
   imports: [
@@ -42,22 +35,11 @@ import { TOKEN_EXPIRE_DEFAULT } from './constants/expired.constant';
     }),
     PrismaModule,
     AuthModule,
-  ],
-  controllers: [
-    AppController,
-    PermissionController,
-    RoleController,
-    UsersController,
-    DepartmentController,
-    TeamController,
-  ],
-  providers: [
-    AppService,
-    PermissionService,
-    RoleService,
-    UsersService,
-    DepartmentService,
-    TeamService,
+    PermissionModule,
+    RoleModule,
+    UserModule,
+    DepartmentModule,
+    TeamModule,
   ],
 })
 export class AppModule {}
