@@ -1,7 +1,9 @@
 export const ERROR_MESSAGE = {
   unexpectedError: 'Unexpected error',
-  duplicate: 'Duplicate value for field: {0}',
-  required: 'Field {0} is required',
+  duplicate: 'Duplicate value for field(s): {0}',
+  notFound: '{0} not found',
+  existed: '{0} already existed',
+  required: 'Field(s) {0} required',
   otpSentSuccess: 'OTP sent successful',
   otpNotFound: 'OTP not found',
   otpExpired: 'OTP expired',

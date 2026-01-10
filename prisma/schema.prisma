@@ -41,18 +41,17 @@ enum UserStatus {
 }
 
 model User {
-  id          Int     @id @default(autoincrement())
-  employeeId  String  @unique
+  id          Int    @id @default(autoincrement())
+  employeeId  String @unique
   fullName    String
-  email       String  @unique
-  phoneNumber String  @unique
-  avatarUrl   String?
+  email       String @unique
+  phoneNumber String @unique
 
   auth              Auth?
-  status            UserStatus         @default(WORKING)
+  status            UserStatus            @default(PROBATION)
   roles             UserRole[]
-  headOf            Department[]       @relation("DepartmentHead")
-  leadOf            Team[]             @relation("TeamLeader")
+  headOf            Department[]          @relation("DepartmentHead")
+  leadOf            Team[]                @relation("TeamLeader")
   membersOf         TeamMember[]
   emergencyContacts EmergencyContact[]
   profile           UserProfile?
@@ -67,12 +66,20 @@ model User {
   @@map("users")
 }
 
+enum UserRelationship {
+  PARENT
+  SPOUSE
+  CHILD
+  FRIEND
+  OTHER
+}
+
 model EmergencyContact {
   id           Int     @id @default(autoincrement())
   userId       Int
   name         String
   phone        String
-  relationship String
+  relationship UserRelationship
   isPrimary    Boolean @default(false)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -100,14 +107,15 @@ enum MaritalStatus {
 
 model UserProfile {
   userId               Int            @id
-  englishName          String?
+  dateOfBirth          DateTime?
   gender               Gender?
   nationality          String?
-  dateOfBirth          DateTime?
-  identityId           String?
+  identityId           String?        @unique
   identityIdIssueDate  DateTime?
   identityIdIssuePlace String?
+  englishName          String?
   address              String?
+  avatarUrl            String?
   maritalStatus        MaritalStatus?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -129,10 +137,10 @@ model UserProfileHistory {
 }
 
 model EmployeeInfo {
-  userId       Int       @id
-  level        String
-  onBoardAt    DateTime
-  resignedAt   DateTime?
+  userId     Int       @id
+  level      String
+  onBoardAt  DateTime
+  resignedAt DateTime?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

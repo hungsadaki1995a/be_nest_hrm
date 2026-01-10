@@ -10,7 +10,7 @@ import { PermissionModule } from './permission/permission.module';
 import { RoleModule } from './role/role.module';
 import { DepartmentModule } from './department/department.module';
 import { TeamModule } from './team/team.module';
-import { UserModule } from './users/user.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [

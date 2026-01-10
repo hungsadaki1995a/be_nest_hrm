@@ -1,3 +1,4 @@
+import { DEFAULT_USER_PASSWORD } from '@/constants/auth.constant';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsStrongPassword } from 'class-validator';
 
@@ -6,7 +7,7 @@ export class LoginDto {
   @IsString()
   employeeId: string;
 
-  @ApiProperty({ example: 'shinhan@1' })
+  @ApiProperty({ example: DEFAULT_USER_PASSWORD })
   @IsString()
   @IsStrongPassword({
     minLength: 8,

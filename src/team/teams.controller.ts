@@ -82,8 +82,8 @@ export class TeamController extends BaseController {
     description: 'Unique team identifier',
   })
   @ApiOperation({
-    summary: 'Update team',
-    description: 'Update an existing team',
+    summary: 'Update team by ID',
+    description: 'Update an existing team by its unique identifier',
   })
   update(
     @Param('id', ParseIntPipe) id: number,

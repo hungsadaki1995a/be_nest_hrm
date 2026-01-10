@@ -16,6 +16,7 @@ import { SELECT_USER_PROPERTIES } from '@/constants/select.constant';
 import { AUTH_SELECT } from './constants/auth.select.constant';
 import { LoginResponseDto } from './dtos/auth.response.dto';
 import { Prisma } from '@prisma/client';
+import { hashPassword } from '@/utils/password.util';
 
 type TToken = { employeeId?: string; sub?: string };
 
@@ -149,7 +150,8 @@ export class AuthService {
     password: string,
     tx?: Prisma.TransactionClient,
   ) {
-    const passwordHash = await bcrypt.hash(password, 10);
+    this.validatePassword(password);
+    const passwordHash = await hashPassword(password);
 
     const client = tx ?? this.prisma;
 
@@ -302,7 +304,7 @@ export class AuthService {
       throw new AppException(getMessage(AUTH_ERROR_MESSAGE.incorrect));
     }
 
-    const passwordHash = await bcrypt.hash(newPassword, 10);
+    const passwordHash = await hashPassword(newPassword);
 
     await this.prisma.auth.update({
       where: { userId: user.id },
@@ -352,7 +354,7 @@ export class AuthService {
       throw new AppException(getMessage(AUTH_ERROR_MESSAGE.incorrect));
     }
 
-    const passwordHash = await bcrypt.hash(newPassword, 10);
+    const passwordHash = await hashPassword(newPassword);
 
     await this.prisma.auth.update({
       where: { userId },

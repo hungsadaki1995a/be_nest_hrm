@@ -1,6 +1,5 @@
 import { AppException } from '@/app.exception';
-import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { TEAM_ERROR_MESSAGE } from './constants/team.error.constant';
 import { TEAM_SELECT_PROPERTIES } from './constants/team.select.constant';
@@ -15,18 +14,18 @@ import {
 } from './constants/team.sort.constant';
 import { applySortOrder } from '@/utils/sort-transformer.util';
 import { getMessage } from '@/utils/message.util';
+import { ERROR_MESSAGE } from '@/constants/message.constant';
+import { handlePrismaError } from '@/prisma/prisma-error.handler';
 
 @Injectable()
 export class TeamService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private handlePrismaUniqueError(e: unknown): never {
-    if (e instanceof Prisma.PrismaClientKnownRequestError) {
-      if (e.code === 'P2002') {
-        throw new AppException(getMessage(TEAM_ERROR_MESSAGE.codeExisted));
-      }
-    }
-    throw e;
+  private handleNotFoundError(field: string) {
+    throw new AppException(
+      getMessage(ERROR_MESSAGE.notFound, [field]),
+      HttpStatus.NOT_FOUND,
+    );
   }
 
   private async validateDepartment(departmentId?: number | null) {
@@ -38,7 +37,7 @@ export class TeamService {
     });
 
     if (!department) {
-      throw new AppException(getMessage(TEAM_ERROR_MESSAGE.departmentNotFound));
+      this.handleNotFoundError('Department');
     }
   }
 
@@ -51,7 +50,7 @@ export class TeamService {
     });
 
     if (!user) {
-      throw new AppException(getMessage(TEAM_ERROR_MESSAGE.leaderNotFound));
+      this.handleNotFoundError('Leader');
     }
   }
 
@@ -67,20 +66,7 @@ export class TeamService {
     const missing = memberIds.filter((id) => !foundIds.includes(id));
 
     if (missing.length > 0) {
-      throw new AppException(
-        `${TEAM_ERROR_MESSAGE.userNotFound} ${missing.join(', ')}`,
-      );
-    }
-  }
-
-  private async ensureTeamExists(id: number): Promise<void> {
-    const exists = await this.prisma.team.findUnique({
-      where: { id },
-      select: { id: true },
-    });
-
-    if (!exists) {
-      throw new AppException(getMessage(TEAM_ERROR_MESSAGE.notFound));
+      this.handleNotFoundError(missing.join(', '));
     }
   }
 
@@ -135,7 +121,7 @@ export class TeamService {
         select: TEAM_SELECT_PROPERTIES,
       });
     } catch (e) {
-      this.handlePrismaUniqueError(e);
+      handlePrismaError(e, { module: 'Team', entity: 'Team' });
     }
   }
 
@@ -176,7 +162,7 @@ export class TeamService {
     });
 
     if (!team) {
-      throw new AppException(getMessage(TEAM_ERROR_MESSAGE.notFound));
+      this.handleNotFoundError('Team');
     }
 
     return team;
@@ -185,7 +171,6 @@ export class TeamService {
   async update(id: number, payload: TeamUpdateDto) {
     const { memberIds, ...teamData } = payload;
 
-    await this.ensureTeamExists(id);
     await this.validateDepartment(teamData.departmentId);
     await this.validateLeader(teamData.leaderId);
     await this.validateMembers(memberIds);
@@ -201,7 +186,7 @@ export class TeamService {
         select: TEAM_SELECT_PROPERTIES,
       });
     } catch (e) {
-      this.handlePrismaUniqueError(e);
+      handlePrismaError(e, { module: 'Team', entity: 'Team' });
     }
   }
 

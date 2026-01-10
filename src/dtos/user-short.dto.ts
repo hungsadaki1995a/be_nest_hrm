@@ -1,13 +1,7 @@
 import { VALIDATION_MESSAGE } from '@/constants/message.constant';
 import { getMessage } from '@/utils/message.util';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  IsEmail,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  Length,
-} from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsEmail, IsNotEmpty, IsString, Length } from 'class-validator';
 
 export class UserBaseDto {
   @ApiProperty({
@@ -48,15 +42,6 @@ export class UserBaseDto {
     message: getMessage(VALIDATION_MESSAGE.exactlyChar, ['Phone Number', '10']),
   })
   phoneNumber: string;
-
-  @ApiPropertyOptional({
-    nullable: true,
-    example: 'http://abc.com/avatar.png',
-    description: "User's avatar URL",
-  })
-  @IsString()
-  @IsOptional()
-  avatarUrl?: string | null;
 }
 
 export class UserShortDto extends UserBaseDto {

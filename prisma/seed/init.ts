@@ -1,5 +1,6 @@
+import { DEFAULT_USER_PASSWORD } from '@/constants/auth.constant';
+import { hashPassword } from '@/utils/password.util';
 import { PrismaClient } from '@prisma/client';
-import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
@@ -20,7 +21,7 @@ async function main() {
     },
   });
 
-  const passwordHash = await bcrypt.hash('shinhan@1', 10);
+  const password = await hashPassword(DEFAULT_USER_PASSWORD);
 
   await prisma.user.create({
     data: {
@@ -30,7 +31,7 @@ async function main() {
       phoneNumber: '0901234567',
       auth: {
         create: {
-          password: passwordHash,
+          password,
         },
       },
       roles: {
