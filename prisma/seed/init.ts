@@ -1,6 +1,5 @@
-import { DEFAULT_USER_PASSWORD } from '@/constants/auth.constant';
-import { hashPassword } from '@/utils/password.util';
 import { PrismaClient } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
@@ -21,7 +20,7 @@ async function main() {
     },
   });
 
-  const password = await hashPassword(DEFAULT_USER_PASSWORD);
+  const password = await bcrypt.hash('shinhan@1', 10);
 
   await prisma.user.create({
     data: {
